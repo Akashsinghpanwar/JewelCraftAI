@@ -11,22 +11,35 @@ interface Viewer3DProps {
 
 function ImageMesh({ imageUrl }: { imageUrl: string }) {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!imageUrl || imageUrl.includes('placeholder')) {
+      setError(true);
+      return;
+    }
+
+    const proxiedUrl = `/api/proxy?url=${encodeURIComponent(imageUrl)}`;
     const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin('anonymous');
+    
     loader.load(
-      imageUrl,
+      proxiedUrl,
       (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
         setTexture(loadedTexture);
+        setError(false);
       },
       undefined,
-      (error) => {
-        console.error("Error loading texture:", error);
+      (err) => {
+        console.error("Error loading texture from:", imageUrl);
+        console.error("Error details:", err);
+        setError(true);
       }
     );
   }, [imageUrl]);
 
-  if (!texture) {
+  if (error || !texture) {
     return (
       <mesh>
         <boxGeometry args={[2, 2, 2]} />
