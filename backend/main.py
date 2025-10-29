@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import os
 from typing import List, Dict
 import uuid
+import asyncio
 from utils.image_generator import JewelryImageGenerator
 from utils.image_processor import ImageProcessor
 
@@ -181,11 +182,25 @@ async def finalize_jewelry(request: FinalizeRequest):
         sketches = await image_processor.convert_images_to_sketches(session["images"])
         print(f"Sketch conversion complete")
         
-        model_url = await image_processor.create_3d_model(
-            session["original_prompt"],
-            session["metal"],
-            session["gemstone"]
-        )
+        print(f"Generating 3D model...")
+        try:
+            model_url = await asyncio.wait_for(
+                image_processor.create_3d_model(
+                    session["original_prompt"],
+                    session["metal"],
+                    session["gemstone"]
+                ),
+                timeout=150.0
+            )
+            print(f"3D model generated: {model_url[:100]}...")
+        except asyncio.TimeoutError:
+            print(f"3D model generation timed out after 150 seconds")
+            model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Timeout"
+        except Exception as e:
+            print(f"Error generating 3D model: {e}")
+            model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
+        
+        print(f"Preparing response with {len(sketches)} sketches and 3D model")
         
         return {
             "session_id": request.session_id,
