@@ -9,10 +9,11 @@ import base64
 
 class ImageProcessor:
     def __init__(self):
-        self.api_key = os.getenv("OPENROUTER_API_KEY")
+        self.api_key = os.getenv("ARK_API_KEY")
         self.has_api_key = bool(self.api_key)
     
     async def create_sketch(self, image_url: str) -> str:
+        """Create a sketch from a jewelry render using OpenCV edge detection"""
         try:
             img_bytes = await self._download_image(image_url)
             
@@ -36,41 +37,41 @@ class ImageProcessor:
             return "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Sketch+Error"
     
     async def create_3d_model(self, prompt: str, metal: str, gemstone: str) -> str:
+        """Generate a 3D-style render using Seedream 4.0"""
         if not self.has_api_key:
             return f"https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+(API+Key+Required)"
         
         try:
-            full_prompt = f"High-quality 3D render of {prompt}, {metal} metal material, {gemstone} gemstone, photorealistic PBR materials, studio lighting, neutral gray background, product visualization, jewelry render, isometric view"
+            # Enhanced prompt for 3D/photorealistic rendering
+            full_prompt = f"High-quality photorealistic 3D render of {prompt}, {metal} metal material with realistic reflections and PBR materials, {gemstone} gemstone with ray-traced lighting, professional studio lighting setup, neutral gray background, product visualization, luxury jewelry photography, isometric view, octane render, 8k detail, sharp focus"
             
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
+                    "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
                     headers={
                         "Authorization": f"Bearer {self.api_key}",
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "google/gemini-2.5-flash-image",
-                        "messages": [{
-                            "role": "user",
-                            "content": full_prompt
-                        }],
-                        "modalities": ["image", "text"]
+                        "model": "seedream-4-0-250828",
+                        "prompt": full_prompt,
+                        "size": "1024x1024",
+                        "response_format": "url",
+                        "watermark": False,
+                        "n": 1
                     }
                 )
                 
                 if response.status_code != 200:
-                    print(f"OpenRouter error {response.status_code}: {response.text}")
+                    print(f"Seedream API error {response.status_code}: {response.text}")
                     return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
                 
                 data = response.json()
                 
-                if "choices" in data and len(data["choices"]) > 0:
-                    choice = data["choices"][0]
-                    if "message" in choice and "images" in choice["message"]:
-                        images = choice["message"]["images"]
-                        if images and len(images) > 0:
-                            return images[0]
+                if "data" in data and len(data["data"]) > 0:
+                    image_url = data["data"][0].get("url")
+                    if image_url:
+                        return image_url
                 
                 return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=No+3D+Image"
                 
@@ -79,6 +80,7 @@ class ImageProcessor:
             return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
     
     async def _download_image(self, url: str) -> bytes:
+        """Download image from URL"""
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
             return response.content
