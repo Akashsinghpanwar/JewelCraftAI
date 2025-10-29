@@ -4,6 +4,12 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Enhanced design consistency and sketch display fix
+  - Strengthened render prompts to ensure EXACT SAME jewelry across all angles
+  - Added explicit instructions: SAME chain thickness, pendant size, metal finish, gemstone placement
+  - Added "DO NOT vary the design" and "DO NOT change any jewelry elements" enforcement
+  - Fixed sketch display issue: changed from object-cover to object-contain for full visibility
+  - Sketches now properly centered and fully visible in their display boxes
 - **October 29, 2025**: Explicit background exclusion and prompt strengthening
   - Added explicit negative prompts to ALL generation endpoints: NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props
   - Enforced "jewelry ONLY on PLAIN WHITE BACKGROUND" for renders

@@ -47,7 +47,7 @@ async def generate_jewelry(request: GenerateRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"A single {request.prompt}, identical design, same jewelry piece, {angle} camera angle only, consistent shape and proportions, same gemstone placement, same metal finish, same design details, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
+            full_prompt = f"EXACT SAME jewelry piece: {request.prompt}, ALL views must show ONE IDENTICAL design, SAME exact chain thickness, SAME exact pendant size and shape, SAME exact metal finish, SAME exact gemstone count and placement, SAME exact proportions and dimensions, ONLY camera angle changes to {angle}, DO NOT vary the design, DO NOT change any jewelry elements, consistent product across all angles, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,
@@ -84,7 +84,7 @@ async def modify_jewelry(request: ModifyRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"REFINE AND ENHANCE this exact jewelry: {session['original_prompt']}, KEEP the same base design, MAINTAIN the same overall shape and structure, PRESERVE the same style and proportions, UPDATE material to {request.metal} metal, UPDATE gemstone to {request.gemstone}, UPDATE band to {request.band_shape} thickness, {angle} camera angle, same jewelry model with material refinements only, do not redesign, do not change the core design, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
+            full_prompt = f"EXACT SAME jewelry piece with material update: {session['original_prompt']}, ALL views must show ONE IDENTICAL design, KEEP the exact same base design structure, MAINTAIN the exact same shape and proportions, PRESERVE the exact same pendant size/chain length/overall form, ONLY UPDATE: material to {request.metal} metal, gemstone to {request.gemstone}, band thickness to {request.band_shape}, {angle} camera angle, SAME exact dimensions across all angles, DO NOT redesign, DO NOT vary the jewelry, DO NOT change core design, consistent product with material refinements only, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,

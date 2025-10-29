@@ -57,11 +57,11 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Technical Sketches
           </h3>
-          <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white">
+          <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white flex items-center justify-center">
             <img
               src={data.sketches?.[currentSketchIndex]?.url || data.sketch}
               alt={data.sketches?.[currentSketchIndex]?.angle || "Sketch version"}
-              className="w-full h-80 object-cover"
+              className="w-full h-80 object-contain"
             />
           </div>
           {data.sketches && data.sketches.length > 0 && (
@@ -80,7 +80,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
                     <img
                       src={sketch.url}
                       alt={sketch.angle}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </button>
                 ))}
