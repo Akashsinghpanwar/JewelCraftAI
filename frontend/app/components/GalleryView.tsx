@@ -31,12 +31,14 @@ export default function GalleryView({ images }: GalleryViewProps) {
       
       {/* Main Image Display */}
       <div className="relative">
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-amber-200">
-          <img
-            src={currentImage.url}
-            alt={currentImage.angle}
-            className="w-full h-[600px] object-contain bg-gray-50"
-          />
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-amber-200 bg-gray-50">
+          <div className="w-full h-[600px] flex items-center justify-center p-4">
+            <img
+              src={currentImage.url}
+              alt={currentImage.angle}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
             <p className="text-white text-xl font-semibold capitalize">
               {currentImage.angle}
