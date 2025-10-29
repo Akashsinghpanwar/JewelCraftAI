@@ -216,16 +216,10 @@ class ImageProcessor:
             async def convert_to_sketch(img_data: dict) -> dict:
                 """Convert a single jewelry image to a pencil sketch"""
                 try:
-                    # Skip base64 data URLs, only convert actual image URLs
                     image_url = img_data["url"]
-                    if image_url.startswith("data:image"):
-                        print(f"Skipping base64 image for sketch conversion: {img_data['angle']}")
-                        return {
-                            "angle": img_data["angle"],
-                            "url": image_url  # Return original for base64
-                        }
                     
                     # Use image-to-image to convert to pencil sketch style
+                    # The Seedream API accepts both regular URLs and base64 data URLs
                     sketch_prompt = "Convert this jewelry photograph into a realistic hand-drawn pencil sketch. Maintain the EXACT same jewelry design, shape, proportions, and all details as in the input image. DO NOT change the design or add/remove any elements. Draw this jewelry as a professional technical blueprint sketch in BLACK AND GRAY PENCIL TONES ONLY, realistic graphite shading with cross-hatching and clean linework, on plain white paper background. Treat this as a precise tracing task where you convert a photo to a pencil drawing while keeping every detail identical. Professional jewelry manufacturer's hand-drawn blueprint style, production-ready technical illustration."
                     
                     print(f"Converting '{img_data['angle']}' to pencil sketch...")
@@ -240,7 +234,7 @@ class ImageProcessor:
                             json={
                                 "model": "seedream-4-0-250828",
                                 "prompt": sketch_prompt,
-                                "image": image_url,  # Use existing jewelry image as input
+                                "image": image_url,  # Works with both URLs and base64 data URLs
                                 "size": "1024x1024",
                                 "response_format": "url",
                                 "watermark": False,
@@ -257,12 +251,16 @@ class ImageProcessor:
                                     return {"angle": img_data["angle"], "url": sketch_url}
                         
                         print(f"Failed to create sketch for '{img_data['angle']}': {response.status_code}")
+                        if response.text:
+                            print(f"Error details: {response.text}")
                         return {
                             "angle": img_data["angle"],
                             "url": image_url  # Fallback to original image
                         }
                 except Exception as e:
                     print(f"Error converting {img_data['angle']} to sketch: {e}")
+                    import traceback
+                    traceback.print_exc()
                     return {
                         "angle": img_data["angle"],
                         "url": img_data["url"]  # Fallback to original image
