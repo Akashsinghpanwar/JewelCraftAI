@@ -4,6 +4,12 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Enhanced sketch generation with multi-view AI rendering
+  - Implemented multi-view technical sketch generation (left, right, top views)
+  - Upgraded from basic edge detection to AI-powered professional blueprint sketches
+  - Added sketch gallery with thumbnail navigation and angle labels
+  - Sketches now use detailed technical drawing prompts for CAD-style illustrations
+  - Backend returns `sketches` array instead of single `sketch` (backwards compatible)
 - **October 29, 2025**: Bug fixes and configuration updates
   - Fixed ARK_API_KEY configuration for Seedream 4.0 image generation API
   - Fixed Next.js cross-origin warnings by configuring allowedDevOrigins with REPLIT_DEV_DOMAIN
@@ -25,7 +31,8 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Features:
   - Multi-angle gallery with camera perspective labels
   - Modification controls (metal, gemstone, band shape)
-  - 3-panel final layout: carousel, sketch, 3D viewer
+  - 3-panel final layout: renders carousel, technical sketches gallery, 3D viewer
+  - Multiple sketch views (left, right, top) with thumbnail navigation
   - Smooth transitions and rounded card design
 
 ### Backend (FastAPI)
@@ -34,13 +41,15 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Endpoints:
   - `POST /generate`: Creates 4-5 views of jewelry from different angles
   - `POST /modify`: Regenerates views with updated material/design parameters
-  - `POST /finalize`: Generates sketch and 3D model from final design
+  - `POST /finalize`: Generates multi-view technical sketches (left, right, top) and 3D model
 - Storage: In-memory session management (no database)
 
 ### AI Integration
-- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering
-- Image Processing: Sketch/blueprint generation and 3D model creation
-- Camera angles: front, side, top, 45-degree angled, perspective
+- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering and technical sketches
+- Sketch Generation: AI-powered professional technical drawings with CAD-style line art
+- 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
+- Camera angles for renders: front, side, top, 45-degree angled, perspective
+- Sketch views: left, right, top (professional blueprint style)
 
 ## User Preferences
 - Clean, elegant jewelry-brand aesthetic
