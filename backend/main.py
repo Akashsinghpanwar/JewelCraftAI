@@ -108,9 +108,12 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         session = sessions[request.session_id]
         
-        main_image = session["images"][0]["url"]
-        
-        sketch_url = await image_processor.create_sketch(main_image)
+        sketches = await image_processor.create_multi_view_sketches(
+            session["original_prompt"],
+            session["metal"],
+            session["gemstone"],
+            session["band_shape"]
+        )
         
         model_url = await image_processor.create_3d_model(
             session["original_prompt"],
@@ -121,7 +124,7 @@ async def finalize_jewelry(request: FinalizeRequest):
         return {
             "session_id": request.session_id,
             "original_images": session["images"],
-            "sketch": sketch_url,
+            "sketches": sketches,
             "model_3d": model_url
         }
     except Exception as e:

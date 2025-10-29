@@ -36,6 +36,65 @@ class ImageProcessor:
             print(f"Error creating sketch: {e}")
             return "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Sketch+Error"
     
+    async def create_multi_view_sketches(self, prompt: str, metal: str, gemstone: str, band_shape: str) -> list:
+        """Generate multiple view technical sketches using Seedream 4.0"""
+        if not self.has_api_key:
+            return [
+                {"angle": "left view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Left+Sketch+(API+Key+Required)"},
+                {"angle": "right view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Right+Sketch+(API+Key+Required)"},
+                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Top+Sketch+(API+Key+Required)"}
+            ]
+        
+        try:
+            angles = ["left view", "right view", "top view"]
+            sketches = []
+            
+            for angle in angles:
+                full_prompt = f"Professional technical drawing blueprint sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, detailed line art, clean pencil sketch style, technical jewelry design blueprint, precise measurements, architectural drawing style, white background, black ink lines, CAD style technical illustration, highly detailed line work, professional jewelry design sketch, clean and precise"
+                
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    response = await client.post(
+                        "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
+                        headers={
+                            "Authorization": f"Bearer {self.api_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json={
+                            "model": "seedream-4-0-250828",
+                            "prompt": full_prompt,
+                            "size": "1024x1024",
+                            "response_format": "url",
+                            "watermark": False,
+                            "n": 1
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if "data" in data and len(data["data"]) > 0:
+                            image_url = data["data"][0].get("url")
+                            if image_url:
+                                sketches.append({
+                                    "angle": angle,
+                                    "url": image_url
+                                })
+                                continue
+                    
+                    sketches.append({
+                        "angle": angle,
+                        "url": f"https://via.placeholder.com/1024x1024/FFFFFF/000000?text={angle.replace(' ', '+')}+Sketch+Error"
+                    })
+            
+            return sketches
+                
+        except Exception as e:
+            print(f"Error creating multi-view sketches: {e}")
+            return [
+                {"angle": "left view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Left+Sketch+Error"},
+                {"angle": "right view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Right+Sketch+Error"},
+                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Top+Sketch+Error"}
+            ]
+    
     async def create_3d_model(self, prompt: str, metal: str, gemstone: str) -> str:
         """Generate a 3D-style render using Seedream 4.0"""
         if not self.has_api_key:

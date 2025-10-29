@@ -9,6 +9,7 @@ interface FinalDisplayProps {
 
 export default function FinalDisplay({ data }: FinalDisplayProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentSketchIndex, setCurrentSketchIndex] = useState(0);
 
   return (
     <div className="space-y-8">
@@ -33,10 +34,10 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
               <button
                 key={idx}
                 onClick={() => setCurrentImageIndex(idx)}
-                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                   currentImageIndex === idx
-                    ? "border-amber-500"
-                    : "border-gray-300"
+                    ? "border-amber-500 scale-105"
+                    : "border-gray-300 hover:border-amber-300"
                 }`}
               >
                 <img
@@ -47,21 +48,50 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
               </button>
             ))}
           </div>
+          <p className="text-xs text-gray-500 mt-2 text-center capitalize">
+            {data.original_images[currentImageIndex]?.angle}
+          </p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl p-6 border border-amber-200">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Sketch / Blueprint
+            Technical Sketches
           </h3>
-          <div className="rounded-2xl overflow-hidden border-2 border-amber-300">
+          <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white">
             <img
-              src={data.sketch}
-              alt="Sketch version"
+              src={data.sketches?.[currentSketchIndex]?.url || data.sketch}
+              alt={data.sketches?.[currentSketchIndex]?.angle || "Sketch version"}
               className="w-full h-80 object-cover"
             />
           </div>
+          {data.sketches && data.sketches.length > 0 && (
+            <>
+              <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
+                {data.sketches.map((sketch: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSketchIndex(idx)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all bg-white ${
+                      currentSketchIndex === idx
+                        ? "border-amber-500 scale-105"
+                        : "border-gray-300 hover:border-amber-300"
+                    }`}
+                  >
+                    <img
+                      src={sketch.url}
+                      alt={sketch.angle}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2 text-center capitalize">
+                {data.sketches[currentSketchIndex]?.angle}
+              </p>
+            </>
+          )}
           <p className="text-sm text-gray-600 mt-3 text-center">
-            Line art technical drawing
+            Professional technical blueprint
           </p>
         </div>
 
