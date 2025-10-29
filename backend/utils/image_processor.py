@@ -25,9 +25,9 @@ class ImageProcessor:
             # Ensuring aspect ratios between 0.33 and 3.00 (Seedream API requirement)
             if "necklace" in jewelry_type.lower() or "pendant" in jewelry_type.lower():
                 crops = {
-                    "pendant": (0.30, 0.25, 0.70, 0.65),   # Square-ish pendant area (1:1 ratio)
-                    "chain": (0.35, 0.10, 0.65, 0.40),     # Chain section (1:1 ratio)
-                    "clasp": (0.35, 0.65, 0.65, 0.90)      # Clasp area (1:1 ratio)
+                    "pendant": (0.25, 0.30, 0.75, 0.70),   # Center pendant area - larger crop
+                    "chain": (0.20, 0.10, 0.80, 0.45),     # Upper chain section - wider crop
+                    "clasp": (0.20, 0.55, 0.80, 0.90)      # Lower clasp area - wider crop
                 }
             elif "ring" in jewelry_type.lower():
                 crops = {
