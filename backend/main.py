@@ -43,14 +43,25 @@ async def generate_jewelry(request: GenerateRequest):
     try:
         session_id = str(uuid.uuid4())
         
-        angles = ["front view", "side view", "top view", "45-degree angled view", "perspective view"]
+        # Generate 3 main angle views + 2 detail close-ups for better consistency
+        views = [
+            {"type": "angle", "name": "front view", "description": "front view"},
+            {"type": "angle", "name": "side view", "description": "side profile view"},
+            {"type": "angle", "name": "angled view", "description": "45-degree angled perspective"},
+            {"type": "detail", "name": "gemstone detail", "description": "extreme close-up macro shot of gemstone/crystal showing facets and reflections"},
+            {"type": "detail", "name": "chain/metal detail", "description": "extreme close-up macro shot of chain links and metal texture"}
+        ]
         images = []
         
-        for angle in angles:
-            full_prompt = f"ONLY ONE jewelry item: {request.prompt}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, NO extra objects, ALL views must show ONE IDENTICAL design, SAME exact chain thickness, SAME exact pendant size and shape, SAME exact metal finish, SAME exact gemstone count and placement, SAME exact proportions and dimensions, ONLY camera angle changes to {angle}, DO NOT vary the design, DO NOT change any jewelry elements, DO NOT add extra jewelry pieces, consistent product across all angles, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, professional jewelry render, studio lighting"
+        for view in views:
+            if view["type"] == "angle":
+                full_prompt = f"ONLY ONE jewelry item: {request.prompt}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, NO extra objects, {view['description']}, same jewelry design, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, professional jewelry product photography, studio lighting, high quality"
+            else:  # detail shot
+                full_prompt = f"ONLY ONE jewelry item detail: {request.prompt}, {view['description']}, macro photography, ultra-detailed, showing intricate craftsmanship, professional jewelry photography, PLAIN WHITE BACKGROUND, NO other objects, high resolution detail shot, studio lighting"
+            
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
-                "angle": angle,
+                "angle": view["name"],
                 "url": image_url
             })
         
@@ -80,14 +91,25 @@ async def modify_jewelry(request: ModifyRequest):
         session["gemstone"] = request.gemstone
         session["band_shape"] = request.band_shape
         
-        angles = ["front view", "side view", "top view", "45-degree angled view", "perspective view"]
+        # Generate 3 main angle views + 2 detail close-ups with material updates
+        views = [
+            {"type": "angle", "name": "front view", "description": "front view"},
+            {"type": "angle", "name": "side view", "description": "side profile view"},
+            {"type": "angle", "name": "angled view", "description": "45-degree angled perspective"},
+            {"type": "detail", "name": "gemstone detail", "description": "extreme close-up macro shot of gemstone/crystal showing facets and reflections"},
+            {"type": "detail", "name": "chain/metal detail", "description": "extreme close-up macro shot of chain links and metal texture"}
+        ]
         images = []
         
-        for angle in angles:
-            full_prompt = f"ONLY ONE jewelry item with material update: {session['original_prompt']}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, NO extra objects, ALL views must show ONE IDENTICAL design, KEEP the exact same base design structure, MAINTAIN the exact same shape and proportions, PRESERVE the exact same pendant size/chain length/overall form, ONLY UPDATE: material to {request.metal} metal, gemstone to {request.gemstone}, band thickness to {request.band_shape}, {angle} camera angle, SAME exact dimensions across all angles, DO NOT redesign, DO NOT vary the jewelry, DO NOT change core design, DO NOT add extra jewelry pieces, consistent product with material refinements only, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, professional jewelry render, studio lighting"
+        for view in views:
+            if view["type"] == "angle":
+                full_prompt = f"ONLY ONE jewelry item with material update: {session['original_prompt']}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, {view['description']}, material: {request.metal} metal, {request.gemstone} gemstone, {request.band_shape} band, same base design, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, professional jewelry product photography, studio lighting, high quality"
+            else:  # detail shot
+                full_prompt = f"ONLY ONE jewelry item detail with material update: {session['original_prompt']}, {view['description']}, material: {request.metal} metal, {request.gemstone} gemstone, macro photography, ultra-detailed craftsmanship, professional jewelry photography, PLAIN WHITE BACKGROUND, NO other objects, high resolution detail shot, studio lighting"
+            
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
-                "angle": angle,
+                "angle": view["name"],
                 "url": image_url
             })
         

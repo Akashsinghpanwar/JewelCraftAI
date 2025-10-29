@@ -4,6 +4,11 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Simplified to 3 angles + 2 detail shots for better consistency
+  - Reduced from 5 angles to 3 main views (front, side, 45-degree angled) for better design consistency
+  - Added 2 macro detail close-ups: gemstone/crystal detail and chain/metal texture detail
+  - Detail shots showcase intricate craftsmanship and material quality
+  - Total 5 images: 3 angles + 2 details = better consistency and more useful visual information
 - **October 29, 2025**: Single-item enforcement and render display fix
   - Strengthened prompts to prevent extra objects: "ONLY ONE jewelry item", "NO rings unless specified", "NO extra objects"
   - Ensures only the requested item is generated, nothing else
@@ -81,7 +86,7 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Location: `/backend`
 - Framework: FastAPI with Python 3.11
 - Endpoints:
-  - `POST /generate`: Creates 5 consistent views of the same jewelry from different camera angles
+  - `POST /generate`: Creates 3 main angle views + 2 macro detail close-ups (gemstone detail, chain/metal detail)
   - `POST /modify`: Refines and enhances the same base design with updated materials (keeps original shape/structure)
   - `POST /finalize`: Generates 6 professional technical blueprint sketches (parallel) and 3D model
 - Storage: In-memory session management (no database)
@@ -94,7 +99,8 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
 - Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
-- Camera angles for renders: front, side, top, 45-degree angled, perspective
+- Main views: front view, side view, 45-degree angled view
+- Detail shots: gemstone/crystal macro close-up, chain/metal texture macro close-up
 - Sketch views: front, top, side, isometric, detail close-up, profile
 
 ## User Preferences
