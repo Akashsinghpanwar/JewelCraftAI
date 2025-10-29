@@ -22,30 +22,31 @@ class ImageProcessor:
             
             # Define crop regions based on jewelry type
             # Format: (left, top, right, bottom) as percentages of image size
+            # Ensuring aspect ratios between 0.33 and 3.00 (Seedream API requirement)
             if "necklace" in jewelry_type.lower() or "pendant" in jewelry_type.lower():
                 crops = {
-                    "pendant": (0.35, 0.30, 0.65, 0.60),  # Center pendant area
-                    "chain": (0.40, 0.10, 0.60, 0.30),    # Upper chain section
-                    "clasp": (0.42, 0.70, 0.58, 0.85)     # Lower clasp/connection
+                    "pendant": (0.30, 0.25, 0.70, 0.65),   # Square-ish pendant area (1:1 ratio)
+                    "chain": (0.35, 0.10, 0.65, 0.40),     # Chain section (1:1 ratio)
+                    "clasp": (0.35, 0.65, 0.65, 0.90)      # Clasp area (1:1 ratio)
                 }
             elif "ring" in jewelry_type.lower():
                 crops = {
-                    "gemstone": (0.35, 0.30, 0.65, 0.60),  # Center gemstone
-                    "band": (0.25, 0.50, 0.75, 0.70),      # Ring band
-                    "side_detail": (0.15, 0.35, 0.40, 0.65) # Side profile
+                    "gemstone": (0.30, 0.25, 0.70, 0.65),  # Center gemstone (1:1 ratio)
+                    "band": (0.30, 0.45, 0.70, 0.75),      # Ring band (4:3 ratio)
+                    "side_detail": (0.25, 0.30, 0.60, 0.70) # Side profile (1:1 ratio)
                 }
             elif "bracelet" in jewelry_type.lower():
                 crops = {
-                    "center_link": (0.35, 0.35, 0.65, 0.65),
-                    "clasp": (0.65, 0.40, 0.90, 0.60),
-                    "pattern": (0.20, 0.40, 0.50, 0.60)
+                    "center_link": (0.30, 0.30, 0.70, 0.70),  # Center link (1:1 ratio)
+                    "clasp": (0.60, 0.35, 0.90, 0.65),        # Clasp (1:1 ratio)
+                    "pattern": (0.25, 0.35, 0.60, 0.70)       # Pattern detail (1:1 ratio)
                 }
             else:
-                # Default: center and detail crops
+                # Default: square crops for safety (1:1 ratio)
                 crops = {
-                    "center": (0.30, 0.30, 0.70, 0.70),
-                    "detail_1": (0.35, 0.35, 0.65, 0.65),
-                    "detail_2": (0.40, 0.40, 0.60, 0.60)
+                    "center": (0.25, 0.25, 0.75, 0.75),      # Main center (1:1)
+                    "detail_1": (0.30, 0.30, 0.70, 0.70),    # Detail 1 (1:1)
+                    "detail_2": (0.35, 0.35, 0.65, 0.65)     # Detail 2 (1:1)
                 }
             
             # Perform crops and convert to base64
@@ -56,6 +57,23 @@ class ImageProcessor:
                 right = int(width * right_pct)
                 bottom = int(height * bottom_pct)
                 
+                crop_width = right - left
+                crop_height = bottom - top
+                
+                # Validate aspect ratio (must be between 0.33 and 3.00)
+                if crop_width > 0 and crop_height > 0:
+                    aspect_ratio = crop_width / crop_height
+                    if aspect_ratio < 0.33 or aspect_ratio > 3.00:
+                        print(f"Warning: Crop '{region_name}' has invalid aspect ratio {aspect_ratio:.2f}, adjusting to 1:1")
+                        # Adjust to square (1:1) to be safe
+                        size = min(crop_width, crop_height)
+                        center_x = (left + right) // 2
+                        center_y = (top + bottom) // 2
+                        left = center_x - size // 2
+                        right = center_x + size // 2
+                        top = center_y - size // 2
+                        bottom = center_y + size // 2
+                
                 cropped = img.crop((left, top, right, bottom))
                 
                 # Convert to base64 data URL for API
@@ -64,6 +82,9 @@ class ImageProcessor:
                 img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
                 
                 cropped_images[region_name] = f"data:image/png;base64,{img_base64}"
+                
+                # Log the crop for debugging
+                print(f"Cropped '{region_name}': {cropped.size[0]}x{cropped.size[1]} (aspect ratio: {cropped.size[0]/cropped.size[1]:.2f})")
             
             return cropped_images
         except Exception as e:

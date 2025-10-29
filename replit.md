@@ -12,6 +12,7 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - Guarantees ALL images show EXACTLY the same jewelry - zero geometry drift
   - Enhanced crops show ultra-realistic macro photography quality with NO AI hallucination
   - Smart region detection based on jewelry type (necklace, ring, bracelet)
+  - Fixed aspect ratio validation: All crops maintain 0.33-3.00 aspect ratio requirement for Seedream API
 - **October 29, 2025**: Single-item enforcement and render display fix
   - Strengthened prompts to prevent extra objects: "ONLY ONE jewelry item", "NO rings unless specified", "NO extra objects"
   - Ensures only the requested item is generated, nothing else
