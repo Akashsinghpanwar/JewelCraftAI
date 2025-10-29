@@ -18,6 +18,8 @@ export default function GenerateForm({ onGenerate }: GenerateFormProps) {
     try {
       const response = await axios.post("/api/generate", {
         prompt: prompt.trim(),
+      }, {
+        timeout: 180000, // 3 minutes timeout for image generation
       });
 
       onGenerate(response.data.session_id, response.data.images);

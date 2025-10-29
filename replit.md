@@ -10,6 +10,8 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - Added "DO NOT vary the design" and "DO NOT change any jewelry elements" enforcement
   - Fixed sketch display issue: changed from object-cover to object-contain for full visibility
   - Sketches now properly centered and fully visible in their display boxes
+  - Fixed 500 timeout errors: Added 3-minute axios timeouts to all API calls (generate, modify, finalize)
+  - Prevents socket hang up errors during image generation
 - **October 29, 2025**: Explicit background exclusion and prompt strengthening
   - Added explicit negative prompts to ALL generation endpoints: NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props
   - Enforced "jewelry ONLY on PLAIN WHITE BACKGROUND" for renders

@@ -27,6 +27,8 @@ export default function ModificationControls({
         metal,
         gemstone,
         band_shape: bandShape,
+      }, {
+        timeout: 180000, // 3 minutes timeout for image generation
       });
 
       onModify(response.data.images);
@@ -43,6 +45,8 @@ export default function ModificationControls({
     try {
       const response = await axios.post("/api/finalize", {
         session_id: sessionId,
+      }, {
+        timeout: 180000, // 3 minutes timeout for sketch and 3D generation
       });
 
       onFinalize(response.data);
