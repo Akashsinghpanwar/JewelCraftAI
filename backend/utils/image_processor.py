@@ -37,20 +37,23 @@ class ImageProcessor:
             return "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Sketch+Error"
     
     async def create_multi_view_sketches(self, prompt: str, metal: str, gemstone: str, band_shape: str) -> list:
-        """Generate multiple view technical sketches using Seedream 4.0"""
+        """Generate 5-6 realistic pencil-shaded technical sketches using Seedream 4.0"""
         if not self.has_api_key:
             return [
-                {"angle": "left view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Left+Sketch+(API+Key+Required)"},
-                {"angle": "right view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Right+Sketch+(API+Key+Required)"},
-                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Top+Sketch+(API+Key+Required)"}
+                {"angle": "front view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Front+Sketch+(API+Key+Required)"},
+                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Top+Sketch+(API+Key+Required)"},
+                {"angle": "side view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Side+Sketch+(API+Key+Required)"},
+                {"angle": "isometric view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Isometric+Sketch+(API+Key+Required)"},
+                {"angle": "detail close-up", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Detail+Sketch+(API+Key+Required)"},
+                {"angle": "profile view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Profile+Sketch+(API+Key+Required)"}
             ]
         
         try:
-            angles = ["left view", "right view", "top view"]
+            angles = ["front view", "top view", "side view", "isometric view", "detail close-up", "profile view"]
             sketches = []
             
             for angle in angles:
-                full_prompt = f"Professional technical drawing blueprint sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, detailed line art, clean pencil sketch style, technical jewelry design blueprint, precise measurements, architectural drawing style, white background, black ink lines, CAD style technical illustration, highly detailed line work, professional jewelry design sketch, clean and precise"
+                full_prompt = f"Realistic hand-drawn pencil sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, same jewelry design, identical piece, fine graphite shading, pencil reflections on metal surfaces, precise geometry showing band curves and gem cuts, shadow depth for volume and structure, white paper background, light gray paper texture, realistic pencil drawing, professional jewelry technical blueprint, hand-drawn sketch with graphite details, no colors, monochrome pencil art, technical illustration, detailed shading and cross-hatching, professional jewelry design reference drawing"
                 
                 async with httpx.AsyncClient(timeout=120.0) as client:
                     response = await client.post(
@@ -82,7 +85,7 @@ class ImageProcessor:
                     
                     sketches.append({
                         "angle": angle,
-                        "url": f"https://via.placeholder.com/1024x1024/FFFFFF/000000?text={angle.replace(' ', '+')}+Sketch+Error"
+                        "url": f"https://via.placeholder.com/1024x1024/F5F5F5/000000?text={angle.replace(' ', '+')}+Sketch+Error"
                     })
             
             return sketches
@@ -90,9 +93,12 @@ class ImageProcessor:
         except Exception as e:
             print(f"Error creating multi-view sketches: {e}")
             return [
-                {"angle": "left view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Left+Sketch+Error"},
-                {"angle": "right view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Right+Sketch+Error"},
-                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Top+Sketch+Error"}
+                {"angle": "front view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Front+Sketch+Error"},
+                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Top+Sketch+Error"},
+                {"angle": "side view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Side+Sketch+Error"},
+                {"angle": "isometric view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Isometric+Sketch+Error"},
+                {"angle": "detail close-up", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Detail+Sketch+Error"},
+                {"angle": "profile view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Profile+Sketch+Error"}
             ]
     
     async def create_3d_model(self, prompt: str, metal: str, gemstone: str) -> str:

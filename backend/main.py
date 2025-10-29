@@ -47,7 +47,7 @@ async def generate_jewelry(request: GenerateRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"{request.prompt}, {angle}, product photography, white background, high quality, professional jewelry render"
+            full_prompt = f"A single {request.prompt}, identical design, same jewelry piece, {angle} camera angle only, consistent shape and proportions, same gemstone placement, same metal finish, same design details, product photography, white background, high quality, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,
@@ -84,7 +84,7 @@ async def modify_jewelry(request: ModifyRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"{session['original_prompt']}, {request.metal} metal, {request.gemstone} gemstone, {request.band_shape} band, {angle}, product photography, white background, high quality, professional jewelry render"
+            full_prompt = f"A single {session['original_prompt']}, {request.metal} metal, {request.gemstone} gemstone, {request.band_shape} band, identical design, same jewelry piece, {angle} camera angle only, consistent shape and proportions, same gemstone placement, same metal finish, same design details, product photography, white background, high quality, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,
