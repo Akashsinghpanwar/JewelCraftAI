@@ -202,41 +202,86 @@ class ImageProcessor:
                 "url": f"https://via.placeholder.com/1024x1024/F5F5F5/000000?text={angle.replace(' ', '+')}+Error"
             }
     
-    async def create_multi_view_sketches(self, prompt: str, metal: str, gemstone: str, band_shape: str) -> list:
-        """Generate 5-6 realistic pencil-shaded technical sketches using Seedream 4.0 in parallel"""
+    async def convert_images_to_sketches(self, jewelry_images: list) -> list:
+        """Convert existing jewelry images to realistic pencil sketches using Seedream image-to-image"""
         if not self.has_api_key:
             return [
-                {"angle": "front view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Front+Sketch+(API+Key+Required)"},
-                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Top+Sketch+(API+Key+Required)"},
-                {"angle": "side view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Side+Sketch+(API+Key+Required)"},
-                {"angle": "isometric view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Isometric+Sketch+(API+Key+Required)"},
-                {"angle": "detail close-up", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Detail+Sketch+(API+Key+Required)"},
-                {"angle": "profile view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Profile+Sketch+(API+Key+Required)"}
+                {"angle": img["angle"], "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Sketch+(API+Key+Required)"}
+                for img in jewelry_images
             ]
         
         try:
             import asyncio
-            angles = ["front view", "top view", "side view", "isometric view", "detail close-up", "profile view"]
             
-            # Generate all sketches in parallel for much faster results
-            print(f"Generating {len(angles)} sketches in parallel...")
-            tasks = [self._generate_single_sketch(prompt, metal, gemstone, band_shape, angle) for angle in angles]
+            async def convert_to_sketch(img_data: dict) -> dict:
+                """Convert a single jewelry image to a pencil sketch"""
+                try:
+                    # Skip base64 data URLs, only convert actual image URLs
+                    image_url = img_data["url"]
+                    if image_url.startswith("data:image"):
+                        print(f"Skipping base64 image for sketch conversion: {img_data['angle']}")
+                        return {
+                            "angle": img_data["angle"],
+                            "url": image_url  # Return original for base64
+                        }
+                    
+                    # Use image-to-image to convert to pencil sketch style
+                    sketch_prompt = "Convert this jewelry photograph into a realistic hand-drawn pencil sketch. Maintain the EXACT same jewelry design, shape, proportions, and all details as in the input image. DO NOT change the design or add/remove any elements. Draw this jewelry as a professional technical blueprint sketch in BLACK AND GRAY PENCIL TONES ONLY, realistic graphite shading with cross-hatching and clean linework, on plain white paper background. Treat this as a precise tracing task where you convert a photo to a pencil drawing while keeping every detail identical. Professional jewelry manufacturer's hand-drawn blueprint style, production-ready technical illustration."
+                    
+                    print(f"Converting '{img_data['angle']}' to pencil sketch...")
+                    
+                    async with httpx.AsyncClient(timeout=120.0) as client:
+                        response = await client.post(
+                            "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
+                            headers={
+                                "Authorization": f"Bearer {self.api_key}",
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "model": "seedream-4-0-250828",
+                                "prompt": sketch_prompt,
+                                "image": image_url,  # Use existing jewelry image as input
+                                "size": "1024x1024",
+                                "response_format": "url",
+                                "watermark": False,
+                                "n": 1
+                            }
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            if "data" in data and len(data["data"]) > 0:
+                                sketch_url = data["data"][0].get("url")
+                                if sketch_url:
+                                    print(f"Sketch created for '{img_data['angle']}'")
+                                    return {"angle": img_data["angle"], "url": sketch_url}
+                        
+                        print(f"Failed to create sketch for '{img_data['angle']}': {response.status_code}")
+                        return {
+                            "angle": img_data["angle"],
+                            "url": image_url  # Fallback to original image
+                        }
+                except Exception as e:
+                    print(f"Error converting {img_data['angle']} to sketch: {e}")
+                    return {
+                        "angle": img_data["angle"],
+                        "url": img_data["url"]  # Fallback to original image
+                    }
+            
+            print(f"Converting {len(jewelry_images)} jewelry images to pencil sketches...")
+            tasks = [convert_to_sketch(img) for img in jewelry_images]
             sketches = await asyncio.gather(*tasks)
-            print(f"Completed generating {len(sketches)} sketches")
+            print(f"Completed converting {len(sketches)} images to sketches")
             
             return list(sketches)
                 
         except Exception as e:
-            print(f"Error creating multi-view sketches: {e}")
+            print(f"Error converting images to sketches: {e}")
             import traceback
             traceback.print_exc()
             return [
-                {"angle": "front view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Front+Sketch+Error"},
-                {"angle": "top view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Top+Sketch+Error"},
-                {"angle": "side view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Side+Sketch+Error"},
-                {"angle": "isometric view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Isometric+Sketch+Error"},
-                {"angle": "detail close-up", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Detail+Sketch+Error"},
-                {"angle": "profile view", "url": "https://via.placeholder.com/1024x1024/F5F5F5/000000?text=Profile+Sketch+Error"}
+                {"angle": img["angle"], "url": img["url"]}
+                for img in jewelry_images
             ]
     
     async def create_3d_model(self, prompt: str, metal: str, gemstone: str) -> str:

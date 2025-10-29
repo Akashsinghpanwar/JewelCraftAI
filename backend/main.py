@@ -175,13 +175,11 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         session = sessions[request.session_id]
         
-        # Generate professional technical blueprint sketches
-        sketches = await image_processor.create_multi_view_sketches(
-            session["original_prompt"],
-            session["metal"],
-            session["gemstone"],
-            session["band_shape"]
-        )
+        # Convert the finalized jewelry images to pencil sketches using image-to-image
+        # This ensures sketches look identical to the final jewelry design
+        print(f"Converting {len(session['images'])} finalized jewelry images to pencil sketches...")
+        sketches = await image_processor.convert_images_to_sketches(session["images"])
+        print(f"Sketch conversion complete")
         
         model_url = await image_processor.create_3d_model(
             session["original_prompt"],
