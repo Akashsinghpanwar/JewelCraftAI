@@ -108,9 +108,12 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         session = sessions[request.session_id]
         
-        # Generate sketches directly from the existing rendered images
-        sketches = await image_processor.create_sketches_from_renders(
-            session["images"]
+        # Generate professional technical blueprint sketches
+        sketches = await image_processor.create_multi_view_sketches(
+            session["original_prompt"],
+            session["metal"],
+            session["gemstone"],
+            session["band_shape"]
         )
         
         model_url = await image_processor.create_3d_model(
