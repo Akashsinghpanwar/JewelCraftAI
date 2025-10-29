@@ -225,8 +225,9 @@ class ImageProcessor:
                         return {"angle": img_data["angle"], "url": image_url}
                     
                     # Use image-to-image to convert to pencil sketch style
-                    # The Seedream API accepts both regular URLs and base64 data URLs
-                    sketch_prompt = "Convert this jewelry photograph into a realistic hand-drawn pencil sketch. Maintain the EXACT same jewelry design, shape, proportions, and all details as in the input image. DO NOT change the design or add/remove any elements. Draw this jewelry as a professional technical blueprint sketch in BLACK AND GRAY PENCIL TONES ONLY, realistic graphite shading with cross-hatching and clean linework, on plain white paper background. Treat this as a precise tracing task where you convert a photo to a pencil drawing while keeping every detail identical. Professional jewelry manufacturer's hand-drawn blueprint style, production-ready technical illustration."
+                    # Strong negative prompt to avoid photorealism
+                    sketch_prompt = "PENCIL SKETCH DRAWING ONLY: Convert this into a detailed hand-drawn pencil sketch on white paper. Black and gray graphite pencil lines only, NO COLOR, NO PHOTOGRAPHY, technical blueprint style drawing with clean linework and realistic shading, cross-hatching technique, jewelry manufacturer's technical illustration"
+                    negative_prompt = "photograph, photo, realistic, color, colored, photography, photorealistic, 3D render, CGI, digital art"
                     
                     print(f"Converting '{img_data['angle']}' to pencil sketch...")
                     
@@ -240,7 +241,8 @@ class ImageProcessor:
                             json={
                                 "model": "seedream-4-0-250828",
                                 "prompt": sketch_prompt,
-                                "image": image_url,  # Works with both URLs and base64 data URLs
+                                "negative_prompt": negative_prompt,
+                                "image": image_url,  # Image-to-image input
                                 "size": "1024x1024",
                                 "response_format": "url",
                                 "watermark": False,
@@ -250,15 +252,18 @@ class ImageProcessor:
                         
                         if response.status_code == 200:
                             data = response.json()
+                            print(f"Sketch API response for '{img_data['angle']}': {data}")
                             if "data" in data and len(data["data"]) > 0:
                                 sketch_url = data["data"][0].get("url")
                                 if sketch_url:
-                                    print(f"Sketch created for '{img_data['angle']}'")
+                                    print(f"Sketch created for '{img_data['angle']}': {sketch_url[:100]}...")
                                     return {"angle": img_data["angle"], "url": sketch_url}
+                            else:
+                                print(f"No sketch data in response for '{img_data['angle']}'")
                         
                         print(f"Failed to create sketch for '{img_data['angle']}': {response.status_code}")
                         if response.text:
-                            print(f"Error details: {response.text}")
+                            print(f"Error details: {response.text[:500]}")
                         return {
                             "angle": img_data["angle"],
                             "url": image_url  # Fallback to original image
