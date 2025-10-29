@@ -91,7 +91,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
             </>
           )}
           <p className="text-sm text-gray-600 mt-3 text-center">
-            Professional technical blueprint
+            Hand-drawn pencil technical sketches
           </p>
         </div>
 
