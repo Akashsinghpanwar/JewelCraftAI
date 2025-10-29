@@ -10,6 +10,13 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - Ensured descriptive words (ocean, flower) are interpreted as design inspiration only, never literal backgrounds
   - Applied background exclusion to: initial generation, modifications, sketches, and 3D model
   - All outputs now guarantee isolated jewelry product shots with no environmental elements
+- **October 29, 2025**: Technical catalog sketch formatting and framing
+  - Implemented proper sketch framing: centered within bordered rectangular frames
+  - Added uniform border margins like technical catalog pages
+  - Ensured complete jewelry is fully visible with NO cropped edges
+  - All 6 sketches now show SAME EXACT jewelry geometry and proportions
+  - Enforced black and gray pencil tones ONLY - NO colors, gradients, or digital filters
+  - Professional manufacturer's technical documentation style, production-ready blueprints
 - **October 29, 2025**: Ultra-realistic sketches and design consistency improvements
   - Fixed 500 timeout errors by implementing parallel sketch generation (12x faster)
   - Enhanced modify/update prompts to REFINE the same base design, not create new ones
@@ -72,7 +79,7 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Design Inspiration: Descriptive words (ocean, flower) interpreted as jewelry style inspiration, never literal backgrounds
 - Rendering Strategy: All views show identical design - only camera angle and lighting change
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
-- Sketch Features: Precise geometry, fine graphite shading, detailed metal/stone reflections, clear structural lines, realistic depth, NO color/filters, professional designer quality on white paper
+- Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
 - Camera angles for renders: front, side, top, 45-degree angled, perspective
 - Sketch views: front, top, side, isometric, detail close-up, profile
