@@ -22,11 +22,11 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Multi-Angle Renders
           </h3>
-          <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300">
+          <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white flex items-center justify-center">
             <img
               src={data.original_images[currentImageIndex]?.url}
               alt={data.original_images[currentImageIndex]?.angle}
-              className="w-full h-80 object-cover"
+              className="w-full h-80 object-contain"
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2">

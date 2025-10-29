@@ -20,21 +20,66 @@ class ImageProcessor:
             nparr = np.frombuffer(img_bytes, np.uint8)
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             
+            # Convert to grayscale
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
+            # Apply Gaussian blur for smoother edges
             blurred = cv2.GaussianBlur(gray, (5, 5), 0)
             
+            # Apply adaptive thresholding for better sketch effect
+            thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                          cv2.THRESH_BINARY, 11, 2)
+            
+            # Detect edges using Canny
             edges = cv2.Canny(blurred, 30, 100)
             
-            inverted = cv2.bitwise_not(edges)
+            # Combine threshold and edges for pencil sketch effect
+            sketch = cv2.bitwise_and(thresh, cv2.bitwise_not(edges))
             
-            _, buffer = cv2.imencode('.png', inverted)
+            # Encode as PNG
+            _, buffer = cv2.imencode('.png', sketch)
             sketch_base64 = base64.b64encode(buffer).decode('utf-8')
             
             return f"data:image/png;base64,{sketch_base64}"
         except Exception as e:
             print(f"Error creating sketch: {e}")
             return "https://via.placeholder.com/1024x1024/FFFFFF/000000?text=Sketch+Error"
+    
+    async def create_sketches_from_renders(self, images: list) -> list:
+        """Create sketches from existing rendered images using OpenCV edge detection"""
+        try:
+            import asyncio
+            
+            async def convert_single_render(img_data: dict) -> dict:
+                """Convert a single render to sketch"""
+                try:
+                    sketch_url = await self.create_sketch(img_data["url"])
+                    return {
+                        "angle": img_data["angle"],
+                        "url": sketch_url
+                    }
+                except Exception as e:
+                    print(f"Error converting {img_data['angle']} to sketch: {e}")
+                    return {
+                        "angle": img_data["angle"],
+                        "url": f"https://via.placeholder.com/1024x1024/F5F5F5/000000?text={img_data['angle'].replace(' ', '+')}+Sketch+Error"
+                    }
+            
+            print(f"Converting {len(images)} renders to sketches...")
+            tasks = [convert_single_render(img) for img in images]
+            sketches = await asyncio.gather(*tasks)
+            print(f"Completed converting {len(sketches)} renders to sketches")
+            
+            return list(sketches)
+        except Exception as e:
+            print(f"Error creating sketches from renders: {e}")
+            import traceback
+            traceback.print_exc()
+            # Return placeholder sketches
+            return [
+                {"angle": img["angle"], "url": f"https://via.placeholder.com/1024x1024/F5F5F5/000000?text={img['angle'].replace(' ', '+')}+Error"}
+                for img in images
+            ]
     
     async def _generate_single_sketch(self, prompt: str, metal: str, gemstone: str, band_shape: str, angle: str) -> dict:
         """Generate a single sketch view"""

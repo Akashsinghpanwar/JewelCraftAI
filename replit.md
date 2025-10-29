@@ -4,6 +4,12 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Sketch conversion from renders and single-item enforcement
+  - Changed sketch generation: now converts existing renders to sketches using OpenCV (no new AI prompts)
+  - Enhanced sketch algorithm: combines adaptive thresholding + Canny edge detection for pencil effect
+  - Fixed render display in finalized view: changed from object-cover to object-contain
+  - Strengthened prompts to prevent extra objects: "ONLY ONE jewelry item", "NO rings unless specified", "NO extra objects"
+  - Ensures only the requested item is generated, nothing else
 - **October 29, 2025**: Enhanced design consistency and sketch display fix
   - Strengthened render prompts to ensure EXACT SAME jewelry across all angles
   - Added explicit instructions: SAME chain thickness, pendant size, metal finish, gemstone placement
@@ -78,7 +84,7 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Endpoints:
   - `POST /generate`: Creates 5 consistent views of the same jewelry from different camera angles
   - `POST /modify`: Refines and enhances the same base design with updated materials (keeps original shape/structure)
-  - `POST /finalize`: Generates 6 hand-drawn pencil sketches (front, top, side, isometric, detail, profile) and 3D model
+  - `POST /finalize`: Converts existing renders to pencil sketches using OpenCV and generates 3D model
 - Storage: In-memory session management (no database)
 
 ### AI Integration
@@ -86,8 +92,8 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Background Policy: Jewelry ONLY on plain/transparent backgrounds - NO scenery, water, ocean, sky, flowers, or props
 - Design Inspiration: Descriptive words (ocean, flower) interpreted as jewelry style inspiration, never literal backgrounds
 - Rendering Strategy: All views show identical design - only camera angle and lighting change
-- Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
-- Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
+- Sketch Generation: Converts existing multi-angle renders to sketches using OpenCV (adaptive thresholding + Canny edge detection)
+- Sketch Features: Pencil sketch effect applied to actual renders (not AI-generated), preserves exact same jewelry from renders, black and white technical drawing style, parallel conversion for speed
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
 - Camera angles for renders: front, side, top, 45-degree angled, perspective
 - Sketch views: front, top, side, isometric, detail close-up, profile

@@ -47,7 +47,7 @@ async def generate_jewelry(request: GenerateRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"EXACT SAME jewelry piece: {request.prompt}, ALL views must show ONE IDENTICAL design, SAME exact chain thickness, SAME exact pendant size and shape, SAME exact metal finish, SAME exact gemstone count and placement, SAME exact proportions and dimensions, ONLY camera angle changes to {angle}, DO NOT vary the design, DO NOT change any jewelry elements, consistent product across all angles, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
+            full_prompt = f"ONLY ONE jewelry item: {request.prompt}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, NO extra objects, ALL views must show ONE IDENTICAL design, SAME exact chain thickness, SAME exact pendant size and shape, SAME exact metal finish, SAME exact gemstone count and placement, SAME exact proportions and dimensions, ONLY camera angle changes to {angle}, DO NOT vary the design, DO NOT change any jewelry elements, DO NOT add extra jewelry pieces, consistent product across all angles, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,
@@ -84,7 +84,7 @@ async def modify_jewelry(request: ModifyRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"EXACT SAME jewelry piece with material update: {session['original_prompt']}, ALL views must show ONE IDENTICAL design, KEEP the exact same base design structure, MAINTAIN the exact same shape and proportions, PRESERVE the exact same pendant size/chain length/overall form, ONLY UPDATE: material to {request.metal} metal, gemstone to {request.gemstone}, band thickness to {request.band_shape}, {angle} camera angle, SAME exact dimensions across all angles, DO NOT redesign, DO NOT vary the jewelry, DO NOT change core design, consistent product with material refinements only, product photography on PLAIN WHITE BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, isolated jewelry product shot, high quality, professional jewelry render, studio lighting"
+            full_prompt = f"ONLY ONE jewelry item with material update: {session['original_prompt']}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, NO extra objects, ALL views must show ONE IDENTICAL design, KEEP the exact same base design structure, MAINTAIN the exact same shape and proportions, PRESERVE the exact same pendant size/chain length/overall form, ONLY UPDATE: material to {request.metal} metal, gemstone to {request.gemstone}, band thickness to {request.band_shape}, {angle} camera angle, SAME exact dimensions across all angles, DO NOT redesign, DO NOT vary the jewelry, DO NOT change core design, DO NOT add extra jewelry pieces, consistent product with material refinements only, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background elements, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,
@@ -108,11 +108,9 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         session = sessions[request.session_id]
         
-        sketches = await image_processor.create_multi_view_sketches(
-            session["original_prompt"],
-            session["metal"],
-            session["gemstone"],
-            session["band_shape"]
+        # Generate sketches directly from the existing rendered images
+        sketches = await image_processor.create_sketches_from_renders(
+            session["images"]
         )
         
         model_url = await image_processor.create_3d_model(
