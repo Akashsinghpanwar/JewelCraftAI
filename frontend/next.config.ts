@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: replitDomain ? [replitDomain] : [],
+  experimental: {
+    proxyTimeout: 300000, // 5 minutes timeout for API proxy
+  },
 };
 
 export default nextConfig;
