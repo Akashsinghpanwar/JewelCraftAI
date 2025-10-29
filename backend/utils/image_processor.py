@@ -224,10 +224,9 @@ class ImageProcessor:
                         print(f"Skipping sketch conversion for base64 image '{img_data['angle']}' (using original crop)")
                         return {"angle": img_data["angle"], "url": image_url}
                     
-                    # Use image-to-image to convert to pencil sketch style
-                    # Strong negative prompt to avoid photorealism
-                    sketch_prompt = "PENCIL SKETCH DRAWING ONLY: Convert this into a detailed hand-drawn pencil sketch on white paper. Black and gray graphite pencil lines only, NO COLOR, NO PHOTOGRAPHY, technical blueprint style drawing with clean linework and realistic shading, cross-hatching technique, jewelry manufacturer's technical illustration"
-                    negative_prompt = "photograph, photo, realistic, color, colored, photography, photorealistic, 3D render, CGI, digital art"
+                    # Use image-to-image to convert to technical CAD drawing style
+                    sketch_prompt = "Technical CAD blueprint drawing, AutoCAD style line drawing, black ink lines on pure white background, engineering schematic, jewelry technical illustration with precise clean linework, orthographic projection, NO SHADING, NO GRADIENTS, simple black outlines only, industrial design blueprint, vector art style, technical drafting"
+                    negative_prompt = "photograph, photo, realistic, color, shading, gradient, 3D, render, painting, sketch, pencil, gray, shadows, depth, volume, photorealistic"
                     
                     print(f"Converting '{img_data['angle']}' to pencil sketch...")
                     
