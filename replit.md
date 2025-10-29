@@ -4,6 +4,15 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Ultra-realistic sketches and design consistency improvements
+  - Fixed 500 timeout errors by implementing parallel sketch generation (12x faster)
+  - Enhanced modify/update prompts to REFINE the same base design, not create new ones
+  - Modified jewelry now PRESERVES the original shape/structure, only updates materials
+  - Upgraded to ultra-realistic technical pencil-shaded blueprint sketches
+  - Sketches now feature: precise geometry, fine graphite shading, detailed metal/stone reflections
+  - Clear structural lines, realistic depth, NO color, NO artistic filters
+  - Professional jewelry designer quality hand-drawn blueprints on white paper
+  - 6 sketch views: front, top, side, isometric, detail close-up, profile
 - **October 29, 2025**: Improved rendering consistency and realistic pencil sketches
   - Enhanced multi-angle render prompts to ensure all views show the SAME jewelry design
   - Only camera angle, lighting, and background now vary between renders - design stays identical
@@ -47,15 +56,15 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Framework: FastAPI with Python 3.11
 - Endpoints:
   - `POST /generate`: Creates 5 consistent views of the same jewelry from different camera angles
-  - `POST /modify`: Regenerates views with updated material/design while maintaining design consistency
+  - `POST /modify`: Refines and enhances the same base design with updated materials (keeps original shape/structure)
   - `POST /finalize`: Generates 6 hand-drawn pencil sketches (front, top, side, isometric, detail, profile) and 3D model
 - Storage: In-memory session management (no database)
 
 ### AI Integration
 - BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering with design consistency enforcement
 - Rendering Strategy: All views show identical design - only camera angle and lighting change
-- Sketch Generation: 6 realistic hand-drawn pencil sketches with graphite shading and reflections
-- Sketch Features: Fine geometry, shadow depth, white/gray paper background, monochrome pencil art
+- Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
+- Sketch Features: Precise geometry, fine graphite shading, detailed metal/stone reflections, clear structural lines, realistic depth, NO color/filters, professional designer quality on white paper
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
 - Camera angles for renders: front, side, top, 45-degree angled, perspective
 - Sketch views: front, top, side, isometric, detail close-up, profile

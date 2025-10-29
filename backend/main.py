@@ -84,7 +84,7 @@ async def modify_jewelry(request: ModifyRequest):
         images = []
         
         for angle in angles:
-            full_prompt = f"A single {session['original_prompt']}, {request.metal} metal, {request.gemstone} gemstone, {request.band_shape} band, identical design, same jewelry piece, {angle} camera angle only, consistent shape and proportions, same gemstone placement, same metal finish, same design details, product photography, white background, high quality, professional jewelry render, studio lighting"
+            full_prompt = f"REFINE AND ENHANCE this exact jewelry: {session['original_prompt']}, KEEP the same base design, MAINTAIN the same overall shape and structure, PRESERVE the same style and proportions, UPDATE material to {request.metal} metal, UPDATE gemstone to {request.gemstone}, UPDATE band to {request.band_shape} thickness, {angle} camera angle, same jewelry model with material refinements only, do not redesign, do not change the core design, product photography, white background, high quality, professional jewelry render, studio lighting"
             image_url = await image_generator.generate_image(full_prompt)
             images.append({
                 "angle": angle,

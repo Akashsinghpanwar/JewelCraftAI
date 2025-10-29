@@ -39,7 +39,7 @@ class ImageProcessor:
     async def _generate_single_sketch(self, prompt: str, metal: str, gemstone: str, band_shape: str, angle: str) -> dict:
         """Generate a single sketch view"""
         try:
-            full_prompt = f"Realistic hand-drawn pencil sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, same jewelry design, identical piece, fine graphite shading, pencil reflections on metal surfaces, precise geometry showing band curves and gem cuts, shadow depth for volume and structure, white paper background, light gray paper texture, realistic pencil drawing, professional jewelry technical blueprint, hand-drawn sketch with graphite details, no colors, monochrome pencil art, technical illustration, detailed shading and cross-hatching, professional jewelry design reference drawing"
+            full_prompt = f"Ultra-realistic technical pencil-shaded blueprint sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, professional jewelry designer hand-drawn blueprint on white paper, PRECISE GEOMETRY with exact band curves and gem facet cuts, FINE GRAPHITE SHADING showing metal surface reflections, DETAILED structural lines and cross-sections, REALISTIC DEPTH with shadow mapping, clear technical specifications, NO COLOR whatsoever, NO artistic filters, NO stylization, pure monochrome pencil graphite on white paper, ultra-detailed reflections on polished metal surfaces, precise gemstone facet rendering, professional CAD-quality technical drawing, hand-sketched by master jewelry designer, same jewelry piece from {angle}"
             
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
