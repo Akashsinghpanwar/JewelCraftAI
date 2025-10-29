@@ -4,6 +4,13 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Improved rendering consistency and realistic pencil sketches
+  - Enhanced multi-angle render prompts to ensure all views show the SAME jewelry design
+  - Only camera angle, lighting, and background now vary between renders - design stays identical
+  - Upgraded sketch generation from 3 to 6 realistic hand-drawn pencil sketches
+  - Sketches now feature fine graphite shading, reflections on metal, shadow depth, and precise geometry
+  - Added new sketch views: front, top, side, isometric, detail close-up, profile
+  - Sketches use white/light-gray paper background for authentic hand-drawn appearance
 - **October 29, 2025**: Enhanced sketch generation with multi-view AI rendering
   - Implemented multi-view technical sketch generation (left, right, top views)
   - Upgraded from basic edge detection to AI-powered professional blueprint sketches
@@ -32,24 +39,26 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - Multi-angle gallery with camera perspective labels
   - Modification controls (metal, gemstone, band shape)
   - 3-panel final layout: renders carousel, technical sketches gallery, 3D viewer
-  - Multiple sketch views (left, right, top) with thumbnail navigation
+  - 6 realistic pencil sketch views with thumbnail navigation
   - Smooth transitions and rounded card design
 
 ### Backend (FastAPI)
 - Location: `/backend`
 - Framework: FastAPI with Python 3.11
 - Endpoints:
-  - `POST /generate`: Creates 4-5 views of jewelry from different angles
-  - `POST /modify`: Regenerates views with updated material/design parameters
-  - `POST /finalize`: Generates multi-view technical sketches (left, right, top) and 3D model
+  - `POST /generate`: Creates 5 consistent views of the same jewelry from different camera angles
+  - `POST /modify`: Regenerates views with updated material/design while maintaining design consistency
+  - `POST /finalize`: Generates 6 hand-drawn pencil sketches (front, top, side, isometric, detail, profile) and 3D model
 - Storage: In-memory session management (no database)
 
 ### AI Integration
-- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering and technical sketches
-- Sketch Generation: AI-powered professional technical drawings with CAD-style line art
+- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering with design consistency enforcement
+- Rendering Strategy: All views show identical design - only camera angle and lighting change
+- Sketch Generation: 6 realistic hand-drawn pencil sketches with graphite shading and reflections
+- Sketch Features: Fine geometry, shadow depth, white/gray paper background, monochrome pencil art
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
 - Camera angles for renders: front, side, top, 45-degree angled, perspective
-- Sketch views: left, right, top (professional blueprint style)
+- Sketch views: front, top, side, isometric, detail close-up, profile
 
 ## User Preferences
 - Clean, elegant jewelry-brand aesthetic
