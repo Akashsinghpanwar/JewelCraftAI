@@ -61,7 +61,9 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 ```
 
 ## Environment Variables
-- `OPENAI_API_KEY`: Required for AI image generation
+- `OPENROUTER_API_KEY` or `OPENAI_API_KEY`: Required for AI image generation
+  - The app supports both OpenRouter (unified API for multiple models) and direct OpenAI
+  - OpenRouter is recommended as it provides access to multiple image models
 - `SESSION_SECRET`: For session management
 
 ## Development

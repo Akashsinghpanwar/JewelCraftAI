@@ -15,13 +15,22 @@ except ImportError:
 
 class ImageProcessor:
     def __init__(self):
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
         if api_key and HAS_OPENAI:
-            self.client = OpenAI(api_key=api_key)
+            if os.getenv("OPENROUTER_API_KEY"):
+                self.client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://openrouter.ai/api/v1"
+                )
+                self.using_openrouter = True
+            else:
+                self.client = OpenAI(api_key=api_key)
+                self.using_openrouter = False
             self.has_api_key = True
         else:
             self.client = None
             self.has_api_key = False
+            self.using_openrouter = False
     
     async def create_sketch(self, image_url: str) -> str:
         try:
@@ -53,28 +62,35 @@ class ImageProcessor:
         try:
             full_prompt = f"High-quality 3D render of {prompt}, {metal} metal material, {gemstone} gemstone, photorealistic PBR materials, studio lighting, neutral gray background, product visualization, jewelry render, isometric view"
             
-            response = self.client.images.generate(
-                model="gpt-image-1",
-                prompt=full_prompt,
-                size="1024x1024",
-                quality="high",
-                n=1,
-            )
+            if self.using_openrouter:
+                response = self.client.images.generate(
+                    model="openai/dall-e-3",
+                    prompt=full_prompt,
+                    n=1,
+                    size="1024x1024",
+                )
+            else:
+                response = self.client.images.generate(
+                    model="gpt-image-1",
+                    prompt=full_prompt,
+                    size="1024x1024",
+                    quality="high",
+                    n=1,
+                )
             
             return response.data[0].url
         except Exception as e:
-            print(f"Error creating 3D model with gpt-image-1, trying dall-e-3: {e}")
+            print(f"Error creating 3D model: {e}")
             try:
                 response = self.client.images.generate(
-                    model="dall-e-3",
+                    model="dall-e-3" if not self.using_openrouter else "openai/dall-e-3",
                     prompt=full_prompt,
                     size="1024x1024",
-                    quality="hd",
                     n=1,
                 )
                 return response.data[0].url
             except Exception as e2:
-                print(f"Error creating 3D model: {e2}")
+                print(f"Error with fallback: {e2}")
                 return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
     
     async def _download_image(self, url: str) -> bytes:
