@@ -202,13 +202,19 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         print(f"Preparing response with {len(sketches)} sketches and 3D model")
         
-        return {
+        response_data = {
             "session_id": request.session_id,
             "original_images": session["images"],
             "sketches": sketches,
             "model_3d": model_url
         }
+        
+        print(f"Response data prepared, returning to client...")
+        return response_data
     except Exception as e:
+        import traceback
+        print(f"ERROR in /finalize endpoint: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
