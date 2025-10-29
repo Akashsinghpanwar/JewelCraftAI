@@ -4,6 +4,12 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Explicit background exclusion and prompt strengthening
+  - Added explicit negative prompts to ALL generation endpoints: NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props
+  - Enforced "jewelry ONLY on PLAIN WHITE BACKGROUND" for renders
+  - Ensured descriptive words (ocean, flower) are interpreted as design inspiration only, never literal backgrounds
+  - Applied background exclusion to: initial generation, modifications, sketches, and 3D model
+  - All outputs now guarantee isolated jewelry product shots with no environmental elements
 - **October 29, 2025**: Ultra-realistic sketches and design consistency improvements
   - Fixed 500 timeout errors by implementing parallel sketch generation (12x faster)
   - Enhanced modify/update prompts to REFINE the same base design, not create new ones
@@ -62,6 +68,8 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 
 ### AI Integration
 - BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering with design consistency enforcement
+- Background Policy: Jewelry ONLY on plain/transparent backgrounds - NO scenery, water, ocean, sky, flowers, or props
+- Design Inspiration: Descriptive words (ocean, flower) interpreted as jewelry style inspiration, never literal backgrounds
 - Rendering Strategy: All views show identical design - only camera angle and lighting change
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
 - Sketch Features: Precise geometry, fine graphite shading, detailed metal/stone reflections, clear structural lines, realistic depth, NO color/filters, professional designer quality on white paper

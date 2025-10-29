@@ -39,7 +39,7 @@ class ImageProcessor:
     async def _generate_single_sketch(self, prompt: str, metal: str, gemstone: str, band_shape: str, angle: str) -> dict:
         """Generate a single sketch view"""
         try:
-            full_prompt = f"Ultra-realistic technical pencil-shaded blueprint sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, professional jewelry designer hand-drawn blueprint on white paper, PRECISE GEOMETRY with exact band curves and gem facet cuts, FINE GRAPHITE SHADING showing metal surface reflections, DETAILED structural lines and cross-sections, REALISTIC DEPTH with shadow mapping, clear technical specifications, NO COLOR whatsoever, NO artistic filters, NO stylization, pure monochrome pencil graphite on white paper, ultra-detailed reflections on polished metal surfaces, precise gemstone facet rendering, professional CAD-quality technical drawing, hand-sketched by master jewelry designer, same jewelry piece from {angle}"
+            full_prompt = f"Ultra-realistic technical pencil-shaded blueprint sketch of {prompt}, {metal} metal, {gemstone} gemstone, {band_shape} band, {angle}, professional jewelry designer hand-drawn blueprint on PLAIN WHITE PAPER, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, NO background, PRECISE GEOMETRY with exact band curves and gem facet cuts, FINE GRAPHITE SHADING showing metal surface reflections, DETAILED structural lines and cross-sections, REALISTIC DEPTH with shadow mapping, clear technical specifications, NO COLOR whatsoever, NO artistic filters, NO stylization, pure monochrome pencil graphite on white paper, ultra-detailed reflections on polished metal surfaces, precise gemstone facet rendering, professional CAD-quality technical drawing, hand-sketched by master jewelry designer, same jewelry piece from {angle}"
             
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
@@ -120,7 +120,7 @@ class ImageProcessor:
         
         try:
             # Enhanced prompt for 3D/photorealistic rendering
-            full_prompt = f"High-quality photorealistic 3D render of {prompt}, {metal} metal material with realistic reflections and PBR materials, {gemstone} gemstone with ray-traced lighting, professional studio lighting setup, neutral gray background, product visualization, luxury jewelry photography, isometric view, octane render, 8k detail, sharp focus"
+            full_prompt = f"High-quality photorealistic 3D render of {prompt}, {metal} metal material with realistic reflections and PBR materials, {gemstone} gemstone with ray-traced lighting, professional studio lighting setup, PLAIN NEUTRAL BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, isolated product visualization, luxury jewelry photography, isometric view, octane render, 8k detail, sharp focus"
             
             async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
