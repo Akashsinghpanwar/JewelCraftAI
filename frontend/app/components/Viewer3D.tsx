@@ -2,81 +2,90 @@
 
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import * as THREE from "three";
 
 interface Viewer3DProps {
   modelUrl: string;
 }
 
-function JewelryModel() {
+function JewelryModel({ imageUrl }: { imageUrl: string }) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    if (!imageUrl || imageUrl.includes('placeholder')) {
+      return;
+    }
+
+    const proxiedUrl = `/api/proxy?url=${encodeURIComponent(imageUrl)}`;
+    const loader = new THREE.TextureLoader();
+    
+    loader.load(
+      proxiedUrl,
+      (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (err) => {
+        console.error("Error loading 3D texture:", err);
+      }
+    );
+  }, [imageUrl]);
+
+  if (!texture) {
+    return (
+      <mesh>
+        <boxGeometry args={[2, 2, 0.3]} />
+        <meshStandardMaterial color="#FFD700" metalness={0.9} roughness={0.1} />
+      </mesh>
+    );
+  }
+
   return (
     <group>
-      {/* Main necklace ring/pendant */}
-      <mesh position={[0, 0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.2, 0.15, 32, 64]} />
+      {/* Front face with jewelry image */}
+      <mesh position={[0, 0, 0.15]}>
+        <boxGeometry args={[3, 3, 0.3]} />
+        <meshStandardMaterial 
+          map={texture}
+          metalness={0.2}
+          roughness={0.4}
+        />
+      </mesh>
+
+      {/* Back face - metallic gold */}
+      <mesh position={[0, 0, -0.15]} rotation={[0, Math.PI, 0]}>
+        <boxGeometry args={[3, 3, 0.3]} />
         <meshStandardMaterial 
           color="#FFD700"
           metalness={0.95}
           roughness={0.05}
-          envMapIntensity={1.5}
         />
       </mesh>
 
-      {/* Center gemstone */}
-      <mesh position={[0, 0.5, 0]}>
-        <sphereGeometry args={[0.35, 32, 32]} />
-        <meshPhysicalMaterial 
-          color="#DC143C"
-          metalness={0}
-          roughness={0}
-          transmission={0.9}
-          thickness={0.5}
-          envMapIntensity={2}
-          clearcoat={1}
-          clearcoatRoughness={0}
-        />
+      {/* Top edge */}
+      <mesh position={[0, 1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[3, 0.3, 0.3]} />
+        <meshStandardMaterial color="#C9A961" metalness={0.8} roughness={0.2} />
       </mesh>
 
-      {/* Chain links - left side */}
-      {[...Array(8)].map((_, i) => (
-        <mesh 
-          key={`left-${i}`} 
-          position={[-1.2 - i * 0.3, 0.5 + Math.sin(i * 0.5) * 0.1, 0]}
-          rotation={[Math.PI / 2, 0, Math.PI / 4]}
-        >
-          <torusGeometry args={[0.12, 0.04, 16, 32]} />
-          <meshStandardMaterial 
-            color="#FFD700"
-            metalness={0.9}
-            roughness={0.1}
-          />
-        </mesh>
-      ))}
+      {/* Bottom edge */}
+      <mesh position={[0, -1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <boxGeometry args={[3, 0.3, 0.3]} />
+        <meshStandardMaterial color="#C9A961" metalness={0.8} roughness={0.2} />
+      </mesh>
 
-      {/* Chain links - right side */}
-      {[...Array(8)].map((_, i) => (
-        <mesh 
-          key={`right-${i}`} 
-          position={[1.2 + i * 0.3, 0.5 + Math.sin(i * 0.5) * 0.1, 0]}
-          rotation={[Math.PI / 2, 0, Math.PI / 4]}
-        >
-          <torusGeometry args={[0.12, 0.04, 16, 32]} />
-          <meshStandardMaterial 
-            color="#FFD700"
-            metalness={0.9}
-            roughness={0.1}
-          />
-        </mesh>
-      ))}
+      {/* Left edge */}
+      <mesh position={[-1.5, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <boxGeometry args={[0.3, 3, 0.3]} />
+        <meshStandardMaterial color="#C9A961" metalness={0.8} roughness={0.2} />
+      </mesh>
 
-      {/* Display stand */}
-      <mesh position={[0, -1.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[1.5, 1.8, 0.2, 64]} />
-        <meshStandardMaterial 
-          color="#2C2C2C"
-          metalness={0.3}
-          roughness={0.7}
-        />
+      {/* Right edge */}
+      <mesh position={[1.5, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <boxGeometry args={[0.3, 3, 0.3]} />
+        <meshStandardMaterial color="#C9A961" metalness={0.8} roughness={0.2} />
       </mesh>
     </group>
   );
@@ -105,7 +114,7 @@ export default function Viewer3D({ modelUrl }: Viewer3DProps) {
             castShadow
           />
           
-          <JewelryModel />
+          <JewelryModel imageUrl={modelUrl} />
           
           <OrbitControls 
             enableZoom={true} 
