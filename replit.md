@@ -4,9 +4,14 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 29, 2025**: Bug fixes and configuration updates
+  - Fixed ARK_API_KEY configuration for Seedream 4.0 image generation API
+  - Fixed Next.js cross-origin warnings by configuring allowedDevOrigins with REPLIT_DEV_DOMAIN
+  - Removed unused OpenAI dependency from requirements.txt
+  - Updated Next.js config to properly handle Replit's dynamic domains
 - **October 29, 2025**: Initial project setup
   - Created FastAPI backend and Next.js frontend structure
-  - Configured OpenAI integration for multi-angle image generation
+  - Configured BytePlus ARK (Seedream 4.0) integration for multi-angle image generation
   - Implemented modification controls for metal type, gemstone, and band shape
   - Added 3-panel final display with carousel, sketch, and 3D viewer
 
@@ -33,9 +38,9 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Storage: In-memory session management (no database)
 
 ### AI Integration
-- OpenAI DALL-E: Multi-angle jewelry rendering
-- ControlNet/Edge Detection: Sketch/blueprint generation
-- Camera angles: front, side, top, angled, perspective
+- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering
+- Image Processing: Sketch/blueprint generation and 3D model creation
+- Camera angles: front, side, top, 45-degree angled, perspective
 
 ## User Preferences
 - Clean, elegant jewelry-brand aesthetic
@@ -61,12 +66,13 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 ```
 
 ## Environment Variables
-- `OPENROUTER_API_KEY` or `OPENAI_API_KEY`: Required for AI image generation
-  - The app supports both OpenRouter (unified API for multiple models) and direct OpenAI
-  - OpenRouter is recommended as it provides access to multiple image models
-- `SESSION_SECRET`: For session management
+- `ARK_API_KEY`: Required for BytePlus ARK (Seedream 4.0) AI image generation
+  - Used to generate realistic jewelry images from text prompts
+  - Securely stored in Replit Secrets
+- `REPLIT_DEV_DOMAIN`: Automatically provided by Replit for cross-origin configuration
 
 ## Development
-- Frontend runs on port 3000
-- Backend runs on port 8000
-- Main workflow serves frontend (proxies to backend)
+- Frontend runs on port 5000 (Next.js with Turbopack)
+- Backend runs on port 8000 (FastAPI with Uvicorn)
+- Frontend proxies API requests to backend via `/api` route
+- Next.js configured for Replit environment with dynamic origin handling

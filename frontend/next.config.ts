@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
@@ -17,6 +19,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: replitDomain ? [replitDomain] : [],
 };
 
 export default nextConfig;
