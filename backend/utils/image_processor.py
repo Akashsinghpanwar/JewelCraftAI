@@ -12,6 +12,66 @@ class ImageProcessor:
         self.api_key = os.getenv("ARK_API_KEY")
         self.has_api_key = bool(self.api_key)
     
+    async def crop_jewelry_regions(self, image_url: str, jewelry_type: str = "necklace") -> dict:
+        """Crop specific regions from the base jewelry image for detail enhancement"""
+        try:
+            # Download the image
+            img_bytes = await self._download_image(image_url)
+            img = Image.open(io.BytesIO(img_bytes))
+            width, height = img.size
+            
+            # Define crop regions based on jewelry type
+            # Format: (left, top, right, bottom) as percentages of image size
+            if "necklace" in jewelry_type.lower() or "pendant" in jewelry_type.lower():
+                crops = {
+                    "pendant": (0.35, 0.30, 0.65, 0.60),  # Center pendant area
+                    "chain": (0.40, 0.10, 0.60, 0.30),    # Upper chain section
+                    "clasp": (0.42, 0.70, 0.58, 0.85)     # Lower clasp/connection
+                }
+            elif "ring" in jewelry_type.lower():
+                crops = {
+                    "gemstone": (0.35, 0.30, 0.65, 0.60),  # Center gemstone
+                    "band": (0.25, 0.50, 0.75, 0.70),      # Ring band
+                    "side_detail": (0.15, 0.35, 0.40, 0.65) # Side profile
+                }
+            elif "bracelet" in jewelry_type.lower():
+                crops = {
+                    "center_link": (0.35, 0.35, 0.65, 0.65),
+                    "clasp": (0.65, 0.40, 0.90, 0.60),
+                    "pattern": (0.20, 0.40, 0.50, 0.60)
+                }
+            else:
+                # Default: center and detail crops
+                crops = {
+                    "center": (0.30, 0.30, 0.70, 0.70),
+                    "detail_1": (0.35, 0.35, 0.65, 0.65),
+                    "detail_2": (0.40, 0.40, 0.60, 0.60)
+                }
+            
+            # Perform crops and convert to base64
+            cropped_images = {}
+            for region_name, (left_pct, top_pct, right_pct, bottom_pct) in crops.items():
+                left = int(width * left_pct)
+                top = int(height * top_pct)
+                right = int(width * right_pct)
+                bottom = int(height * bottom_pct)
+                
+                cropped = img.crop((left, top, right, bottom))
+                
+                # Convert to base64 data URL for API
+                buffer = io.BytesIO()
+                cropped.save(buffer, format="PNG")
+                img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                
+                cropped_images[region_name] = f"data:image/png;base64,{img_base64}"
+            
+            return cropped_images
+        except Exception as e:
+            print(f"Error cropping jewelry regions: {e}")
+            import traceback
+            traceback.print_exc()
+            return {}
+    
     async def create_sketch(self, image_url: str) -> str:
         """Create a sketch from a jewelry render using OpenCV edge detection"""
         try:
