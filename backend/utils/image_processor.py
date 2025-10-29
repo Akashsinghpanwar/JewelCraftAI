@@ -214,23 +214,20 @@ class ImageProcessor:
             import asyncio
             
             async def convert_to_sketch(img_data: dict) -> dict:
-                """Convert a single jewelry image to a pencil sketch"""
+                """Convert a single jewelry image to a technical drawing"""
                 try:
                     image_url = img_data["url"]
-                    
-                    # Skip base64 data URLs - they're too large and cause timeouts
-                    # Detail crops are already high quality, no need to convert them
-                    if image_url.startswith("data:image"):
-                        print(f"Skipping sketch conversion for base64 image '{img_data['angle']}' (using original crop)")
-                        return {"angle": img_data["angle"], "url": image_url}
                     
                     # Use image-to-image to convert to technical CAD drawing style
                     sketch_prompt = "Technical CAD blueprint drawing, AutoCAD style line drawing, black ink lines on pure white background, engineering schematic, jewelry technical illustration with precise clean linework, orthographic projection, NO SHADING, NO GRADIENTS, simple black outlines only, industrial design blueprint, vector art style, technical drafting"
                     negative_prompt = "photograph, photo, realistic, color, shading, gradient, 3D, render, painting, sketch, pencil, gray, shadows, depth, volume, photorealistic"
                     
-                    print(f"Converting '{img_data['angle']}' to pencil sketch...")
+                    print(f"Converting '{img_data['angle']}' to technical drawing...")
                     
-                    async with httpx.AsyncClient(timeout=120.0) as client:
+                    # Set longer timeout for base64 images (they're larger)
+                    timeout_duration = 180.0 if image_url.startswith("data:image") else 120.0
+                    
+                    async with httpx.AsyncClient(timeout=timeout_duration) as client:
                         response = await client.post(
                             "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
                             headers={
