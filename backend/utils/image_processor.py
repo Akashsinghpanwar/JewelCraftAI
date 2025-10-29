@@ -218,6 +218,12 @@ class ImageProcessor:
                 try:
                     image_url = img_data["url"]
                     
+                    # Skip base64 data URLs - they're too large and cause timeouts
+                    # Detail crops are already high quality, no need to convert them
+                    if image_url.startswith("data:image"):
+                        print(f"Skipping sketch conversion for base64 image '{img_data['angle']}' (using original crop)")
+                        return {"angle": img_data["angle"], "url": image_url}
+                    
                     # Use image-to-image to convert to pencil sketch style
                     # The Seedream API accepts both regular URLs and base64 data URLs
                     sketch_prompt = "Convert this jewelry photograph into a realistic hand-drawn pencil sketch. Maintain the EXACT same jewelry design, shape, proportions, and all details as in the input image. DO NOT change the design or add/remove any elements. Draw this jewelry as a professional technical blueprint sketch in BLACK AND GRAY PENCIL TONES ONLY, realistic graphite shading with cross-hatching and clean linework, on plain white paper background. Treat this as a precise tracing task where you convert a photo to a pencil drawing while keeping every detail identical. Professional jewelry manufacturer's hand-drawn blueprint style, production-ready technical illustration."
