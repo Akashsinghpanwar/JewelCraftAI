@@ -42,17 +42,46 @@ function ImageMesh({ imageUrl }: { imageUrl: string }) {
   if (error || !texture) {
     return (
       <mesh>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} />
+        <torusGeometry args={[1.5, 0.6, 32, 64]} />
+        <meshStandardMaterial color="#FFD700" metalness={0.9} roughness={0.1} />
       </mesh>
     );
   }
 
+  // Create a 3D curved surface with proper depth for jewelry display
   return (
-    <mesh>
-      <planeGeometry args={[4, 4]} />
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
-    </mesh>
+    <group>
+      {/* Front curved panel with jewelry texture */}
+      <mesh position={[0, 0, 0.3]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[2.5, 2.5, 0.5, 64, 1, false, 0, Math.PI]} />
+        <meshStandardMaterial 
+          map={texture} 
+          metalness={0.3} 
+          roughness={0.4}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      
+      {/* Back metallic surface for depth */}
+      <mesh position={[0, 0, -0.3]} rotation={[0, Math.PI, 0]}>
+        <cylinderGeometry args={[2.5, 2.5, 0.5, 64, 1, false, 0, Math.PI]} />
+        <meshStandardMaterial 
+          color="#FFD700" 
+          metalness={0.9} 
+          roughness={0.1}
+        />
+      </mesh>
+      
+      {/* Side edges for realistic depth */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[2.5, 0.3, 16, 64, Math.PI]} />
+        <meshStandardMaterial 
+          color="#C9A961" 
+          metalness={0.8} 
+          roughness={0.2}
+        />
+      </mesh>
+    </group>
   );
 }
 
