@@ -4,11 +4,14 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
-- **October 29, 2025**: Simplified to 3 angles + 2 detail shots for better consistency
-  - Reduced from 5 angles to 3 main views (front, side, 45-degree angled) for better design consistency
-  - Added 2 macro detail close-ups: gemstone/crystal detail and chain/metal texture detail
-  - Detail shots showcase intricate craftsmanship and material quality
-  - Total 5 images: 3 angles + 2 details = better consistency and more useful visual information
+- **October 29, 2025**: Implemented crop-and-enhance workflow for 100% design consistency
+  - Generate ONE ultra-high-resolution base image (2K) for perfect consistency
+  - Crop specific regions (pendant, chain, clasp, etc.) from the base image
+  - Enhance each crop using Seedream 4.0 image-to-image enhancement (NO redesign, only upscale/sharpen)
+  - Display base image + enhanced detail close-ups (pendant detail, chain detail, clasp detail)
+  - Guarantees ALL images show EXACTLY the same jewelry - zero geometry drift
+  - Enhanced crops show ultra-realistic macro photography quality with NO AI hallucination
+  - Smart region detection based on jewelry type (necklace, ring, bracelet)
 - **October 29, 2025**: Single-item enforcement and render display fix
   - Strengthened prompts to prevent extra objects: "ONLY ONE jewelry item", "NO rings unless specified", "NO extra objects"
   - Ensures only the requested item is generated, nothing else
@@ -86,21 +89,25 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Location: `/backend`
 - Framework: FastAPI with Python 3.11
 - Endpoints:
-  - `POST /generate`: Creates 3 main angle views + 2 macro detail close-ups (gemstone detail, chain/metal detail)
-  - `POST /modify`: Refines and enhances the same base design with updated materials (keeps original shape/structure)
+  - `POST /generate`: Creates 1 ultra-high-res base image (2K) → crops regions → enhances each crop → returns base + detail close-ups
+  - `POST /modify`: Creates 1 ultra-high-res base image with new materials → crops regions → enhances → returns updated base + detail close-ups
   - `POST /finalize`: Generates 6 professional technical blueprint sketches (parallel) and 3D model
 - Storage: In-memory session management (no database)
 
 ### AI Integration
-- BytePlus ARK (Seedream 4.0): Multi-angle jewelry rendering with design consistency enforcement
+- BytePlus ARK (Seedream 4.0): Ultra-high-res generation (2K) + image-to-image enhancement
+- Workflow: Generate ONE base image → crop regions → enhance crops (upscale only, NO redesign)
 - Background Policy: Jewelry ONLY on plain/transparent backgrounds - NO scenery, water, ocean, sky, flowers, or props
-- Design Inspiration: Descriptive words (ocean, flower) interpreted as jewelry style inspiration, never literal backgrounds
-- Rendering Strategy: All views show identical design - only camera angle and lighting change
+- Design Consistency: 100% guaranteed - all images derived from the same base image through cropping and enhancement
+- Enhancement Policy: Crops are enhanced to ultra-high resolution WITHOUT modifying design/geometry - photo enhancement only
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
 - Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
 - 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
-- Main views: front view, side view, 45-degree angled view
-- Detail shots: gemstone/crystal macro close-up, chain/metal texture macro close-up
+- Base image: Ultra-high-res (2K) centered product photography
+- Detail crops (auto-detected based on jewelry type):
+  - Necklace: pendant, chain, clasp
+  - Ring: gemstone, band, side detail
+  - Bracelet: center link, clasp, pattern
 - Sketch views: front, top, side, isometric, detail close-up, profile
 
 ## User Preferences
