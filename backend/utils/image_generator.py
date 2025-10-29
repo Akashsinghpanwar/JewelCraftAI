@@ -64,6 +64,12 @@ class JewelryImageGenerator:
         if not self.has_api_key:
             return image_url  # Return original if no API key
         
+        # If the image is a base64 data URL (from cropped regions), skip enhancement
+        # and return it as-is since it's already high quality from the 2K base image
+        if image_url.startswith("data:image"):
+            print(f"Skipping enhancement for base64 data URL (already high quality from crop)")
+            return image_url
+        
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
