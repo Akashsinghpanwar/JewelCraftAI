@@ -182,22 +182,27 @@ async def finalize_jewelry(request: FinalizeRequest):
         sketches = await image_processor.convert_images_to_sketches(session["images"])
         print(f"Sketch conversion complete")
         
-        print(f"Generating 3D model...")
+        print(f"Generating 3D model using Hitem3D API...")
         try:
+            # Get the base view image URL (first image in the session)
+            base_image_url = session["images"][0]["url"] if session["images"] else None
+            
+            if not base_image_url:
+                raise Exception("No base image found for 3D conversion")
+            
+            # Convert to 3D using Hitem3D API (increased timeout for API processing)
             model_url = await asyncio.wait_for(
-                image_processor.create_3d_model(
-                    session["original_prompt"],
-                    session["metal"],
-                    session["gemstone"]
-                ),
-                timeout=150.0
+                image_processor.create_3d_model(base_image_url),
+                timeout=350.0  # 5-6 minutes for Hitem3D processing
             )
             print(f"3D model generated: {model_url[:100]}...")
         except asyncio.TimeoutError:
-            print(f"3D model generation timed out after 150 seconds")
+            print(f"3D model generation timed out after 350 seconds")
             model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Timeout"
         except Exception as e:
             print(f"Error generating 3D model: {e}")
+            import traceback
+            traceback.print_exc()
             model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
         
         print(f"Preparing response with {len(sketches)} sketches and 3D model")

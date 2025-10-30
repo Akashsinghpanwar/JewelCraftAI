@@ -6,11 +6,13 @@ import cv2
 import numpy as np
 from typing import Optional
 import base64
+from .hitem3d_client import Hitem3DClient
 
 class ImageProcessor:
     def __init__(self):
         self.api_key = os.getenv("ARK_API_KEY")
         self.has_api_key = bool(self.api_key)
+        self.hitem3d_client = Hitem3DClient()
     
     async def crop_jewelry_regions(self, image_url: str, jewelry_type: str = "necklace") -> dict:
         """Crop specific regions from the base jewelry image for detail enhancement"""
@@ -289,47 +291,43 @@ class ImageProcessor:
                 for img in jewelry_images
             ]
     
-    async def create_3d_model(self, prompt: str, metal: str, gemstone: str) -> str:
-        """Generate a 3D-style render using Seedream 4.0"""
-        if not self.has_api_key:
-            return f"https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+(API+Key+Required)"
+    async def create_3d_model(self, base_image_url: str) -> str:
+        """
+        Convert jewelry image to 3D model using Hitem3D API
+        
+        Args:
+            base_image_url: URL of the base jewelry image to convert to 3D
+        
+        Returns:
+            URL to the .glb 3D model file
+        """
+        if not self.hitem3d_client.has_credentials:
+            print("WARNING: Hitem3D credentials not configured, returning placeholder")
+            return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+(Hitem3D+API+Keys+Required)"
         
         try:
-            # Enhanced prompt for 3D/photorealistic rendering
-            full_prompt = f"High-quality photorealistic 3D render of {prompt}, {metal} metal material with realistic reflections and PBR materials, {gemstone} gemstone with ray-traced lighting, professional studio lighting setup, PLAIN NEUTRAL BACKGROUND, jewelry ONLY with NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, isolated product visualization, luxury jewelry photography, isometric view, octane render, 8k detail, sharp focus"
+            print(f"Converting jewelry image to 3D model using Hitem3D...")
             
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    "https://ark.ap-southeast.bytepluses.com/api/v3/images/generations",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "seedream-4-0-250828",
-                        "prompt": full_prompt,
-                        "size": "1024x1024",
-                        "response_format": "url",
-                        "watermark": False,
-                        "n": 1
-                    }
-                )
-                
-                if response.status_code != 200:
-                    print(f"Seedream API error {response.status_code}: {response.text}")
-                    return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
-                
-                data = response.json()
-                
-                if "data" in data and len(data["data"]) > 0:
-                    image_url = data["data"][0].get("url")
-                    if image_url:
-                        return image_url
-                
-                return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=No+3D+Image"
+            # Use Hitem3D to convert image to .glb 3D model
+            # Using 1024 resolution for balance of quality and speed
+            model_url = await self.hitem3d_client.convert_image_to_3d(
+                image_url=base_image_url,
+                resolution=1024,
+                texture_enabled=True,
+                max_wait_time=300  # 5 minutes max wait
+            )
+            
+            if model_url:
+                print(f"Hitem3D 3D model created successfully")
+                return model_url
+            else:
+                print("Hitem3D returned no model URL")
+                return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Generation+Failed"
                 
         except Exception as e:
-            print(f"Error creating 3D model: {e}")
+            print(f"Error creating 3D model with Hitem3D: {e}")
+            import traceback
+            traceback.print_exc()
             return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
     
     async def _download_image(self, url: str) -> bytes:
