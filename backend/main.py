@@ -118,11 +118,15 @@ async def modify_jewelry(request: ModifyRequest):
         session["gemstone"] = request.gemstone
         session["band_shape"] = request.band_shape
         
-        # Step 1: Generate ONE ultra-high-resolution base image with material updates
-        base_prompt = f"ONLY ONE jewelry item with material update: {session['original_prompt']}, EXACTLY ONE single piece ONLY, NO other jewelry, NO rings unless specified, material: {request.metal} metal, {request.gemstone} gemstone, {request.band_shape} band, centered professional product photography, single isolated jewelry item on PLAIN WHITE BACKGROUND, NO scenery, NO water, NO ocean, NO sky, NO flowers, NO props, ultra-high resolution, studio lighting, perfect clarity, best quality"
+        # Get the original base image from the session
+        original_base_image = session["images"][0]["url"]
         
-        print(f"Generating modified base image in 2K resolution...")
-        base_image_url = await image_generator.generate_image(base_prompt, size="2K")
+        # Step 1: Use image-to-image to MODIFY the existing jewelry (NOT create new one)
+        # This preserves the exact design, shape, and structure - only changes materials
+        modification_prompt = f"Transform this jewelry to {request.metal} metal with {request.gemstone} gemstone and {request.band_shape} band. CRITICAL: Keep the EXACT SAME design, shape, structure, proportions, and geometry as the input image. DO NOT change the jewelry type (necklace stays necklace, ring stays ring, etc). DO NOT redesign or create different jewelry. ONLY update the metal finish to {request.metal} color/texture and gemstone to {request.gemstone} color. The band should be {request.band_shape}. Maintain the same camera angle, lighting, and white background. This is a material swap only - preserve all design elements perfectly."
+        
+        print(f"Modifying materials on existing jewelry (image-to-image)...")
+        base_image_url = await image_generator.enhance_image(original_base_image, modification_prompt)
         print(f"Modified base image generated: {base_image_url}")
         
         # Step 2: Crop regions from the base image
