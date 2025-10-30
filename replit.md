@@ -4,15 +4,15 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
-- **October 30, 2025**: Integrated Hitem3D API for real 3D model generation
-  - Implemented Hitem3D client with access key and secret key authentication
-  - Converts finalized jewelry images to interactive .glb 3D models
-  - Added Google model-viewer web component for displaying 3D models in browser
-  - Users can rotate, zoom, and interact with real 3D jewelry models
-  - 3D generation happens during finalization with 5-minute timeout
-  - Proper handling of signed URLs with query parameters
-  - Fixed image centering in gallery view using calc() for precise sizing
-  - All images (base view and cropped details) now fit perfectly within borders
+- **October 30, 2025**: Gallery UI enhancements and Hitem3D status update
+  - Enhanced gallery view with amber gradient navigation buttons and white borders
+  - Redesigned thumbnail gallery with rings, hover states, checkmarks, and "All Views" divider
+  - Added "Same Jewelry" info badge to clarify all views come from one design
+  - Improved responsive layouts across mobile/tablet/desktop breakpoints
+  - Fixed image centering with responsive aspect ratios and flex containers
+  - Hitem3D 3D model integration currently disabled (all API endpoints return 404)
+  - 3D feature requires official API documentation or alternative service
+  - Gallery now clearly labels "base view" vs "detail view" for user clarity
 - **October 29, 2025**: Implemented crop-and-enhance workflow for 100% design consistency
   - Generate ONE ultra-high-resolution base image (2K) for perfect consistency
   - Crop specific regions (pendant, chain, clasp, etc.) from the base image
@@ -113,12 +113,10 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Enhancement Policy: Crops are enhanced to ultra-high resolution WITHOUT modifying design/geometry - photo enhancement only
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
 - Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
-- 3D Model Creation: Real .glb 3D models using Hitem3D API (converts base jewelry image to interactive 3D model)
-  - Authentication: Access key + secret key (stored securely in environment variables)
-  - Resolution: 1024³ for balance of quality and speed
-  - Format: .glb (compatible with all modern 3D viewers)
-  - Processing time: ~2-5 minutes per model
-  - Features: Full 360° geometry reconstruction, texture generation, downloadable format
+- 3D Model Creation: **Currently disabled** - Hitem3D API integration requires official documentation
+  - Status: All tested API endpoints return 404 errors from nginx
+  - Alternatives: Consider Meshy, CSM, Tripo3D, or other 3D generation services
+  - Requirements: Official Hitem3D API documentation with endpoints and authentication format
 - Base image: Ultra-high-res (2K) centered product photography
 - Detail crops (auto-detected based on jewelry type):
   - Necklace: pendant, chain, clasp
