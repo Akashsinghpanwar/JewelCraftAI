@@ -1,19 +1,20 @@
 import os
+import httpx
+import asyncio
+import time
 from typing import Optional
 
 
 class Hitem3DClient:
-    """
-    Client for Hitem3D API - converts images to 3D models (.glb format)
-    
-    CURRENTLY DISABLED: This integration requires official API documentation.
-    All 404 errors indicate the API endpoints are not accessible or don't exist.
-    """
+    """Client for Hitem3D API - converts images to 3D models (.glb format)"""
     
     def __init__(self):
         self.access_key = os.getenv("HITEM3D_ACCESS_KEY")
         self.secret_key = os.getenv("HITEM3D_SECRET_KEY")
-        self.enabled = False  # Disabled until proper API documentation is provided
+        self.enabled = bool(self.access_key and self.secret_key)
+        
+        if not self.enabled:
+            print("⚠️ WARNING: Hitem3D API credentials not found")
     
     async def convert_image_to_3d(
         self, 
@@ -22,23 +23,184 @@ class Hitem3DClient:
         texture_enabled: bool = True,
         max_wait_time: int = 300
     ) -> Optional[str]:
-        """
-        Convert a jewelry image to a 3D model (.glb format)
+        """Convert a jewelry image to a 3D model (.glb format)"""
         
-        Currently returns None - Hitem3D API integration is disabled.
-        
-        REASON: Without official API documentation or accessible endpoints,
-        integration cannot be completed. All tested endpoint combinations
-        returned 404 errors from nginx.
-        
-        ALTERNATIVES:
-        1. Provide official Hitem3D API documentation
-        2. Use a different 3D generation service (e.g., Meshy, CSM, Tripo3D)
-        3. Disable 3D model generation feature temporarily
-        """
         if not self.enabled:
-            print("⚠️ Hitem3D 3D model generation is currently disabled")
-            print("   Provide API documentation to enable this feature")
+            print("⚠️ Hitem3D disabled - no API credentials")
             return None
         
+        try:
+            print(f"🎨 Starting Hitem3D 3D model generation...")
+            
+            # Submit generation task
+            task_id = await self._submit_task(image_url, resolution, texture_enabled)
+            
+            if not task_id:
+                print("❌ Failed to submit 3D generation task")
+                return None
+            
+            print(f"✅ Task submitted: {task_id}")
+            
+            # Poll for completion
+            model_url = await self._poll_completion(task_id, max_wait_time)
+            
+            if model_url:
+                print(f"✅ 3D model ready: {model_url[:100]}...")
+                return model_url
+            else:
+                print("❌ 3D generation failed or timed out")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Hitem3D error: {e}")
+            return None
+    
+    async def _submit_task(
+        self, 
+        image_url: str, 
+        resolution: int,
+        texture_enabled: bool
+    ) -> Optional[str]:
+        """Submit image for 3D generation"""
+        
+        # Try most common API patterns
+        endpoints = [
+            {
+                "url": "https://api.hitem3d.ai/v1/generate",
+                "headers": {
+                    "X-Access-Key": self.access_key,
+                    "X-Secret-Key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            {
+                "url": "https://api.hitem3d.com/v1/generate",
+                "headers": {
+                    "X-Access-Key": self.access_key,
+                    "X-Secret-Key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            {
+                "url": "https://platform.hitem3d.ai/api/generate",
+                "headers": {
+                    "Authorization": f"Bearer {self.access_key}",
+                    "X-Secret-Key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image": image_url,
+                    "resolution": str(resolution),
+                    "texture": texture_enabled
+                }
+            }
+        ]
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            for idx, config in enumerate(endpoints, 1):
+                try:
+                    print(f"\n🔍 Attempt {idx}: {config['url']}")
+                    
+                    response = await client.post(
+                        config['url'],
+                        headers=config['headers'],
+                        json=config['payload']
+                    )
+                    
+                    print(f"   Status: {response.status_code}")
+                    
+                    if response.status_code in [200, 201, 202]:
+                        data = response.json()
+                        print(f"   Response: {data}")
+                        
+                        # Extract task ID
+                        task_id = (
+                            data.get("task_id") or 
+                            data.get("id") or 
+                            data.get("job_id") or
+                            data.get("request_id")
+                        )
+                        
+                        if task_id:
+                            return str(task_id)
+                    else:
+                        print(f"   Response: {response.text[:200]}")
+                        
+                except Exception as e:
+                    print(f"   Error: {str(e)[:150]}")
+                    continue
+        
+        return None
+    
+    async def _poll_completion(
+        self, 
+        task_id: str, 
+        max_wait_time: int
+    ) -> Optional[str]:
+        """Poll for task completion"""
+        
+        start_time = time.time()
+        poll_interval = 5
+        
+        # Try common status endpoint patterns
+        status_urls = [
+            f"https://api.hitem3d.ai/v1/status/{task_id}",
+            f"https://api.hitem3d.com/v1/status/{task_id}",
+            f"https://platform.hitem3d.ai/api/task/{task_id}"
+        ]
+        
+        headers = {
+            "X-Access-Key": self.access_key,
+            "X-Secret-Key": self.secret_key,
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            while time.time() - start_time < max_wait_time:
+                for url in status_urls:
+                    try:
+                        response = await client.get(url, headers=headers)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            status = data.get("status", "").lower()
+                            
+                            print(f"⏳ Task {task_id}: {status}")
+                            
+                            if status in ["completed", "done", "finished", "success"]:
+                                model_url = (
+                                    data.get("model_url") or
+                                    data.get("glb_url") or
+                                    data.get("download_url") or
+                                    data.get("url") or
+                                    (data.get("result") or {}).get("glb")
+                                )
+                                
+                                if model_url:
+                                    return str(model_url)
+                            
+                            elif status in ["failed", "error"]:
+                                error = data.get("error") or "Unknown error"
+                                print(f"❌ Generation failed: {error}")
+                                return None
+                            
+                            # Still processing
+                            break
+                            
+                    except Exception:
+                        continue
+                
+                await asyncio.sleep(poll_interval)
+        
+        print(f"⏱️ Timeout after {max_wait_time}s")
         return None
