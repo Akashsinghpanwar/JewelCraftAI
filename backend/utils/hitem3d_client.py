@@ -16,23 +16,44 @@ class Hitem3DClient:
         self.secret_key = os.getenv("HITEM3D_SECRET_KEY")
         self.has_credentials = bool(self.access_key and self.secret_key)
         
-        # API base URL (assumed based on platform.hitem3d.ai)
-        # This may need adjustment based on actual API documentation
-        self.base_url = "https://api.hitem3d.ai/v1"
+        # Try multiple possible base URLs
+        self.base_urls = [
+            "https://platform.hitem3d.ai/api",
+            "https://api.hitem3d.ai",
+            "https://platform.hitem3d.ai/v1",
+            "https://api.hitem3d.ai/v1"
+        ]
         
         if not self.has_credentials:
             print("WARNING: Hitem3D API credentials not found in environment variables")
     
-    def _get_auth_headers(self) -> Dict[str, str]:
-        """Generate authentication headers for API requests"""
-        # Using Bearer token authentication with access key
-        # If this doesn't work, may need to adjust based on actual API docs
-        return {
-            "Authorization": f"Bearer {self.access_key or ''}",
-            "X-Hitem3D-Access-Key": self.access_key or '',
-            "X-Hitem3D-Secret-Key": self.secret_key or '',
-            "Content-Type": "application/json"
-        }
+    def _get_auth_headers_variants(self) -> list[Dict[str, str]]:
+        """Generate multiple authentication header variants to try"""
+        return [
+            # Variant 1: Simple header authentication
+            {
+                "X-Access-Key": self.access_key or '',
+                "X-Secret-Key": self.secret_key or '',
+                "Content-Type": "application/json"
+            },
+            # Variant 2: API Key prefixes
+            {
+                "X-API-Access-Key": self.access_key or '',
+                "X-API-Secret-Key": self.secret_key or '',
+                "Content-Type": "application/json"
+            },
+            # Variant 3: Bearer token
+            {
+                "Authorization": f"Bearer {self.access_key or ''}",
+                "X-Secret-Key": self.secret_key or '',
+                "Content-Type": "application/json"
+            },
+            # Variant 4: Basic Auth (base64 encoded)
+            {
+                "Authorization": f"Basic {base64.b64encode(f'{self.access_key}:{self.secret_key}'.encode()).decode()}",
+                "Content-Type": "application/json"
+            }
+        ]
     
     async def convert_image_to_3d(
         self, 
@@ -92,64 +113,84 @@ class Hitem3DClient:
     ) -> Optional[str]:
         """Submit an image for 3D generation and get task ID"""
         try:
-            # Prepare request payload
-            payload = {
-                "image": image_url,
-                "resolution": str(resolution),
-                "texture": texture_enabled,
-                "format": "glb"
-            }
+            # Try multiple payload variants
+            payloads = [
+                {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                },
+                {
+                    "image": image_url,
+                    "resolution": str(resolution),
+                    "texture": texture_enabled,
+                    "format": "glb"
+                },
+                {
+                    "input_image": image_url,
+                    "output_resolution": resolution,
+                    "output_format": "glb"
+                }
+            ]
             
             # Try multiple potential endpoint patterns
             endpoints = [
                 "/generate",
                 "/3d/generate", 
                 "/image-to-3d",
-                "/v1/generate"
+                "/v1/generate",
+                "/v1/3d",
+                "/api/generate"
             ]
             
-            headers = self._get_auth_headers()
+            auth_variants = self._get_auth_headers_variants()
             
             async with httpx.AsyncClient(timeout=120.0) as client:
-                for endpoint in endpoints:
-                    try:
-                        url = f"{self.base_url}{endpoint}"
-                        print(f"Trying Hitem3D endpoint: {url}")
-                        
-                        response = await client.post(
-                            url,
-                            headers=headers,
-                            json=payload
-                        )
-                        
-                        if response.status_code in [200, 201, 202]:
-                            data = response.json()
-                            print(f"Hitem3D response: {data}")
-                            
-                            # Try to extract task ID from various response formats
-                            task_id = (
-                                data.get("task_id") or 
-                                data.get("id") or 
-                                data.get("job_id") or
-                                data.get("uuid")
-                            )
-                            
-                            if task_id:
-                                return str(task_id)
-                        
-                        elif response.status_code == 404:
-                            # Endpoint not found, try next one
-                            continue
-                        else:
-                            print(f"Hitem3D API error {response.status_code}: {response.text[:500]}")
-                            
-                    except httpx.HTTPStatusError as e:
-                        print(f"HTTP error for endpoint {endpoint}: {e}")
-                        continue
-                    except Exception as e:
-                        print(f"Error with endpoint {endpoint}: {e}")
-                        continue
+                # Try all combinations of base URLs, endpoints, auth methods, and payloads
+                for base_url in self.base_urls:
+                    for endpoint in endpoints:
+                        for auth_headers in auth_variants:
+                            for payload in payloads:
+                                try:
+                                    url = f"{base_url}{endpoint}"
+                                    print(f"Trying: {url} with auth variant {auth_variants.index(auth_headers) + 1}")
+                                    
+                                    response = await client.post(
+                                        url,
+                                        headers=auth_headers,
+                                        json=payload
+                                    )
+                                    
+                                    if response.status_code in [200, 201, 202]:
+                                        data = response.json()
+                                        print(f"✓ SUCCESS! Hitem3D responded from {url}")
+                                        print(f"Response data: {data}")
+                                        
+                                        # Try to extract task ID from various response formats
+                                        task_id = (
+                                            data.get("task_id") or 
+                                            data.get("id") or 
+                                            data.get("job_id") or
+                                            data.get("uuid") or
+                                            data.get("request_id")
+                                        )
+                                        
+                                        if task_id:
+                                            print(f"Got task ID: {task_id}")
+                                            return str(task_id)
+                                    
+                                    elif response.status_code not in [404, 405]:
+                                        # Log non-404 errors for debugging
+                                        print(f"  Error {response.status_code}: {response.text[:200]}")
+                                        
+                                except httpx.ConnectError:
+                                    # Connection failed, skip silently
+                                    continue
+                                except Exception as e:
+                                    # Skip other errors silently
+                                    continue
             
+            print("All Hitem3D endpoint/auth combinations failed")
             return None
             
         except Exception as e:
@@ -171,60 +212,66 @@ class Hitem3DClient:
                 f"/status/{task_id}",
                 f"/task/{task_id}",
                 f"/3d/status/{task_id}",
-                f"/job/{task_id}"
+                f"/job/{task_id}",
+                f"/v1/status/{task_id}",
+                f"/api/status/{task_id}"
             ]
             
-            headers = self._get_auth_headers()
+            auth_variants = self._get_auth_headers_variants()
             
             async with httpx.AsyncClient(timeout=60.0) as client:
                 while time.time() - start_time < max_wait_time:
-                    for endpoint in status_endpoints:
-                        try:
-                            url = f"{self.base_url}{endpoint}"
-                            response = await client.get(url, headers=headers)
-                            
-                            if response.status_code == 200:
-                                data = response.json()
-                                status = data.get("status", "").lower()
-                                
-                                print(f"Hitem3D task {task_id} status: {status}")
-                                
-                                # Check if completed
-                                if status in ["completed", "done", "finished", "success"]:
-                                    # Try to extract model URL from various response formats
-                                    model_url = (
-                                        data.get("model_url") or
-                                        data.get("glb_url") or
-                                        data.get("result_url") or
-                                        data.get("download_url") or
-                                        data.get("url") or
-                                        (data.get("result") or {}).get("glb") or
-                                        (data.get("output") or {}).get("model")
-                                    )
+                    # Try all combinations of base URLs, endpoints, and auth methods
+                    for base_url in self.base_urls:
+                        for endpoint in status_endpoints:
+                            for auth_headers in auth_variants:
+                                try:
+                                    url = f"{base_url}{endpoint}"
+                                    response = await client.get(url, headers=auth_headers)
                                     
-                                    if model_url:
-                                        return str(model_url)
-                                
-                                # Check if failed
-                                elif status in ["failed", "error"]:
-                                    error_msg = data.get("error") or data.get("message") or "Unknown error"
-                                    raise Exception(f"Hitem3D generation failed: {error_msg}")
-                                
-                                # Still processing, wait and continue
-                                await asyncio.sleep(poll_interval)
-                                break  # Found working endpoint, use this one
-                            
-                            elif response.status_code == 404:
-                                # Endpoint not found, try next one
-                                continue
-                                
-                        except httpx.HTTPStatusError:
-                            continue
-                        except Exception as e:
-                            print(f"Error polling endpoint {endpoint}: {e}")
-                            continue
+                                    if response.status_code == 200:
+                                        data = response.json()
+                                        status = data.get("status", "").lower()
+                                        
+                                        print(f"Hitem3D task {task_id} status: {status}")
+                                        
+                                        # Check if completed
+                                        if status in ["completed", "done", "finished", "success"]:
+                                            # Try to extract model URL from various response formats
+                                            model_url = (
+                                                data.get("model_url") or
+                                                data.get("glb_url") or
+                                                data.get("result_url") or
+                                                data.get("download_url") or
+                                                data.get("url") or
+                                                (data.get("result") or {}).get("glb") or
+                                                (data.get("output") or {}).get("model")
+                                            )
+                                            
+                                            if model_url:
+                                                return str(model_url)
+                                        
+                                        # Check if failed
+                                        elif status in ["failed", "error"]:
+                                            error_msg = data.get("error") or data.get("message") or "Unknown error"
+                                            raise Exception(f"Hitem3D generation failed: {error_msg}")
+                                        
+                                        # Still processing, wait and continue
+                                        await asyncio.sleep(poll_interval)
+                                        break  # Found working endpoint, use this one
+                                    
+                                    elif response.status_code not in [404, 405]:
+                                        # Log non-404/405 errors
+                                        print(f"  Poll error {response.status_code}: {response.text[:200]}")
+                                        
+                                except httpx.ConnectError:
+                                    # Connection failed, skip silently
+                                    continue
+                                except Exception as e:
+                                    # Skip other errors silently
+                                    continue
                     
-                    # Small delay before next poll
+                    # Small delay before next poll iteration
                     await asyncio.sleep(poll_interval)
             
             # Timeout
