@@ -145,6 +145,9 @@ class Hitem3DClient:
             
             auth_variants = self._get_auth_headers_variants()
             
+            # Track unique responses to avoid spam
+            logged_responses = set()
+            
             async with httpx.AsyncClient(timeout=120.0) as client:
                 # Try all combinations of base URLs, endpoints, auth methods, and payloads
                 for base_url in self.base_urls:
@@ -153,7 +156,13 @@ class Hitem3DClient:
                             for payload in payloads:
                                 try:
                                     url = f"{base_url}{endpoint}"
-                                    print(f"Trying: {url} with auth variant {auth_variants.index(auth_headers) + 1}")
+                                    response_key = f"{base_url}{endpoint}"
+                                    
+                                    # Only log first attempt per unique URL
+                                    if response_key not in logged_responses:
+                                        print(f"\n🔍 Trying: {url}")
+                                        print(f"   Auth: variant {auth_variants.index(auth_headers) + 1}")
+                                        print(f"   Payload keys: {list(payload.keys())}")
                                     
                                     response = await client.post(
                                         url,
@@ -161,9 +170,17 @@ class Hitem3DClient:
                                         json=payload
                                     )
                                     
+                                    # Log response for first attempt per URL
+                                    if response_key not in logged_responses:
+                                        print(f"   📡 Status: {response.status_code}")
+                                        print(f"   📄 Response: {response.text[:300]}")
+                                        if response.headers.get("www-authenticate"):
+                                            print(f"   🔐 WWW-Authenticate: {response.headers['www-authenticate']}")
+                                        logged_responses.add(response_key)
+                                    
                                     if response.status_code in [200, 201, 202]:
                                         data = response.json()
-                                        print(f"✓ SUCCESS! Hitem3D responded from {url}")
+                                        print(f"\n✅ SUCCESS! Hitem3D responded from {url}")
                                         print(f"Response data: {data}")
                                         
                                         # Try to extract task ID from various response formats
@@ -178,16 +195,21 @@ class Hitem3DClient:
                                         if task_id:
                                             print(f"Got task ID: {task_id}")
                                             return str(task_id)
-                                    
-                                    elif response.status_code not in [404, 405]:
-                                        # Log non-404 errors for debugging
-                                        print(f"  Error {response.status_code}: {response.text[:200]}")
                                         
-                                except httpx.ConnectError:
-                                    # Connection failed, skip silently
+                                except httpx.ConnectError as e:
+                                    if response_key not in logged_responses:
+                                        print(f"   ❌ Connection Error: {str(e)[:200]}")
+                                        logged_responses.add(response_key)
+                                    continue
+                                except httpx.TimeoutException as e:
+                                    if response_key not in logged_responses:
+                                        print(f"   ⏱️ Timeout: {str(e)[:200]}")
+                                        logged_responses.add(response_key)
                                     continue
                                 except Exception as e:
-                                    # Skip other errors silently
+                                    if response_key not in logged_responses:
+                                        print(f"   ⚠️ Error: {type(e).__name__}: {str(e)[:200]}")
+                                        logged_responses.add(response_key)
                                     continue
             
             print("All Hitem3D endpoint/auth combinations failed")
