@@ -29,13 +29,21 @@ export default function Viewer3D({ modelUrl }: Viewer3DProps) {
     }
   }, []);
   
-  // Check if modelUrl is a .glb file
-  const isGlbModel = modelUrl && (
-    modelUrl.endsWith('.glb') || 
-    modelUrl.endsWith('.gltf') ||
-    modelUrl.includes('/3d/') ||
-    modelUrl.includes('hitem3d')
-  );
+  // Check if modelUrl is a .glb file (including signed URLs with query params)
+  const isGlbModel = modelUrl && (() => {
+    try {
+      // Parse URL to check pathname (works with signed URLs that have query params)
+      const url = new URL(modelUrl, window.location.origin);
+      const pathname = url.pathname.toLowerCase();
+      return pathname.includes('.glb') || pathname.includes('.gltf') || 
+             pathname.includes('/3d/') || url.hostname.includes('hitem3d');
+    } catch {
+      // If URL parsing fails, fallback to simple string checks
+      const lowerUrl = modelUrl.toLowerCase();
+      return lowerUrl.includes('.glb') || lowerUrl.includes('.gltf') ||
+             lowerUrl.includes('/3d/') || lowerUrl.includes('hitem3d');
+    }
+  })();
   
   // If it's a placeholder or not a .glb file, show a message
   if (!modelUrl || modelUrl.includes('placeholder') || !isGlbModel) {
