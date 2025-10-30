@@ -301,7 +301,7 @@ class ImageProcessor:
         Returns:
             URL to the .glb 3D model file
         """
-        if not self.hitem3d_client.has_credentials:
+        if not self.hitem3d_client.enabled:
             print("WARNING: Hitem3D credentials not configured, returning placeholder")
             return "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+(Hitem3D+API+Keys+Required)"
         
