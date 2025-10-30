@@ -64,25 +64,15 @@ class Hitem3DClient:
         """Submit image for 3D generation"""
         
         # Try most common API patterns
+        # 405 on platform.hitem3d.ai/api/generate means we need to try different methods/headers
         endpoints = [
+            # Try platform.hitem3d.ai with different auth formats (405 means endpoint exists!)
             {
-                "url": "https://api.hitem3d.ai/v1/generate",
+                "url": "https://platform.hitem3d.ai/api/generate",
+                "method": "POST",
                 "headers": {
-                    "X-Access-Key": self.access_key,
-                    "X-Secret-Key": self.secret_key,
-                    "Content-Type": "application/json"
-                },
-                "payload": {
-                    "image_url": image_url,
-                    "resolution": resolution,
-                    "format": "glb"
-                }
-            },
-            {
-                "url": "https://api.hitem3d.com/v1/generate",
-                "headers": {
-                    "X-Access-Key": self.access_key,
-                    "X-Secret-Key": self.secret_key,
+                    "access-key": self.access_key,
+                    "secret-key": self.secret_key,
                     "Content-Type": "application/json"
                 },
                 "payload": {
@@ -93,15 +83,74 @@ class Hitem3DClient:
             },
             {
                 "url": "https://platform.hitem3d.ai/api/generate",
+                "method": "POST",
                 "headers": {
-                    "Authorization": f"Bearer {self.access_key}",
+                    "AccessKey": self.access_key,
+                    "SecretKey": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            {
+                "url": "https://platform.hitem3d.ai/api/generate",
+                "method": "POST",
+                "headers": {
+                    "X-Access-Key": self.access_key,
                     "X-Secret-Key": self.secret_key,
                     "Content-Type": "application/json"
                 },
                 "payload": {
-                    "image": image_url,
-                    "resolution": str(resolution),
-                    "texture": texture_enabled
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            # Try api.hitem3d.ai with variations
+            {
+                "url": "https://api.hitem3d.ai/v1/generate",
+                "method": "POST",
+                "headers": {
+                    "access-key": self.access_key,
+                    "secret-key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            # Try different paths on platform
+            {
+                "url": "https://platform.hitem3d.ai/api/v1/generate",
+                "method": "POST",
+                "headers": {
+                    "access-key": self.access_key,
+                    "secret-key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
+                }
+            },
+            {
+                "url": "https://platform.hitem3d.ai/api/create",
+                "method": "POST",
+                "headers": {
+                    "access-key": self.access_key,
+                    "secret-key": self.secret_key,
+                    "Content-Type": "application/json"
+                },
+                "payload": {
+                    "image_url": image_url,
+                    "resolution": resolution,
+                    "format": "glb"
                 }
             }
         ]
