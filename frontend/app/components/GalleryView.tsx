@@ -32,15 +32,18 @@ export default function GalleryView({ images }: GalleryViewProps) {
       {/* Main Image Display */}
       <div className="relative">
         <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-amber-200 bg-gray-50">
-          <div className="w-full h-[600px] flex items-center justify-center p-8">
-            <div className="max-w-[90%] max-h-[90%] flex items-center justify-center">
-              <img
-                src={currentImage.url}
-                alt={currentImage.angle}
-                className="max-w-full max-h-full w-auto h-auto object-contain"
-                style={{ maxHeight: '500px', maxWidth: '100%' }}
-              />
-            </div>
+          <div className="w-full h-[600px] flex items-center justify-center p-6">
+            <img
+              src={currentImage.url}
+              alt={currentImage.angle}
+              className="object-contain"
+              style={{ 
+                maxWidth: 'calc(100% - 48px)',
+                maxHeight: 'calc(100% - 48px)',
+                width: 'auto',
+                height: 'auto'
+              }}
+            />
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
             <p className="text-white text-xl font-semibold capitalize">

@@ -4,6 +4,15 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
+- **October 30, 2025**: Integrated Hitem3D API for real 3D model generation
+  - Implemented Hitem3D client with access key and secret key authentication
+  - Converts finalized jewelry images to interactive .glb 3D models
+  - Added Google model-viewer web component for displaying 3D models in browser
+  - Users can rotate, zoom, and interact with real 3D jewelry models
+  - 3D generation happens during finalization with 5-minute timeout
+  - Proper handling of signed URLs with query parameters
+  - Fixed image centering in gallery view using calc() for precise sizing
+  - All images (base view and cropped details) now fit perfectly within borders
 - **October 29, 2025**: Implemented crop-and-enhance workflow for 100% design consistency
   - Generate ONE ultra-high-resolution base image (2K) for perfect consistency
   - Crop specific regions (pendant, chain, clasp, etc.) from the base image
@@ -78,12 +87,13 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Location: `/frontend`
 - Framework: Next.js 14+ with React 18+
 - Styling: TailwindCSS with elegant white/gold gradient theme
-- 3D Viewer: React-Three-Fiber for interactive model rotation
+- 3D Viewer: Google model-viewer web component for .glb 3D models
 - Features:
-  - Multi-angle gallery with camera perspective labels
+  - Multi-angle gallery with camera perspective labels and perfect image centering
   - Modification controls (metal, gemstone, band shape)
-  - 3-panel final layout: renders carousel, technical sketches gallery, 3D viewer
+  - 3-panel final layout: renders carousel, technical sketches gallery, interactive 3D viewer
   - 6 realistic pencil sketch views with thumbnail navigation
+  - Interactive .glb 3D model display with rotation, zoom, and auto-rotate
   - Smooth transitions and rounded card design
 
 ### Backend (FastAPI)
@@ -103,7 +113,12 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Enhancement Policy: Crops are enhanced to ultra-high resolution WITHOUT modifying design/geometry - photo enhancement only
 - Sketch Generation: 6 ultra-realistic technical pencil-shaded blueprint sketches (parallel generation)
 - Sketch Features: Same exact jewelry geometry across all views, centered within bordered rectangular frames, uniform border margins (technical catalog format), complete jewelry fully visible with NO cropped edges, black and gray pencil tones ONLY, NO colors/gradients/digital filters, plain white/light gray paper background, professional manufacturer's technical documentation style, production-ready blueprints
-- 3D Model Creation: Photorealistic renders with PBR materials and ray-traced lighting
+- 3D Model Creation: Real .glb 3D models using Hitem3D API (converts base jewelry image to interactive 3D model)
+  - Authentication: Access key + secret key (stored securely in environment variables)
+  - Resolution: 1024³ for balance of quality and speed
+  - Format: .glb (compatible with all modern 3D viewers)
+  - Processing time: ~2-5 minutes per model
+  - Features: Full 360° geometry reconstruction, texture generation, downloadable format
 - Base image: Ultra-high-res (2K) centered product photography
 - Detail crops (auto-detected based on jewelry type):
   - Necklace: pendant, chain, clasp
@@ -137,6 +152,14 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 ## Environment Variables
 - `ARK_API_KEY`: Required for BytePlus ARK (Seedream 4.0) AI image generation
   - Used to generate realistic jewelry images from text prompts
+  - Securely stored in Replit Secrets
+- `HITEM3D_ACCESS_KEY`: Required for Hitem3D API (3D model generation)
+  - Access key for authenticating with Hitem3D service
+  - Used to convert jewelry images to .glb 3D models
+  - Securely stored in Replit Secrets
+- `HITEM3D_SECRET_KEY`: Required for Hitem3D API (3D model generation)
+  - Secret key for authenticating with Hitem3D service
+  - Used in conjunction with access key for secure API calls
   - Securely stored in Replit Secrets
 - `REPLIT_DEV_DOMAIN`: Automatically provided by Replit for cross-origin configuration
 
