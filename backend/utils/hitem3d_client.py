@@ -159,18 +159,20 @@ class Hitem3DClient:
             for idx, config in enumerate(endpoints, 1):
                 try:
                     print(f"\n🔍 Attempt {idx}: {config['url']}")
+                    print(f"   Headers: {list(config['headers'].keys())}")
                     
+                    # Try POST first
                     response = await client.post(
                         config['url'],
                         headers=config['headers'],
                         json=config['payload']
                     )
                     
-                    print(f"   Status: {response.status_code}")
+                    print(f"   POST Status: {response.status_code}")
                     
                     if response.status_code in [200, 201, 202]:
                         data = response.json()
-                        print(f"   Response: {data}")
+                        print(f"   ✅ Response: {data}")
                         
                         # Extract task ID
                         task_id = (
@@ -182,6 +184,32 @@ class Hitem3DClient:
                         
                         if task_id:
                             return str(task_id)
+                    elif response.status_code == 405:
+                        # 405 means method not allowed - try GET with query params
+                        print(f"   Trying GET with query params...")
+                        params = config['payload']
+                        response = await client.get(
+                            config['url'],
+                            headers=config['headers'],
+                            params=params
+                        )
+                        print(f"   GET Status: {response.status_code}")
+                        
+                        if response.status_code in [200, 201, 202]:
+                            data = response.json()
+                            print(f"   ✅ Response: {data}")
+                            
+                            task_id = (
+                                data.get("task_id") or 
+                                data.get("id") or 
+                                data.get("job_id") or
+                                data.get("request_id")
+                            )
+                            
+                            if task_id:
+                                return str(task_id)
+                        else:
+                            print(f"   GET Response: {response.text[:200]}")
                     else:
                         print(f"   Response: {response.text[:200]}")
                         
