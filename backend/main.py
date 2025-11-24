@@ -215,35 +215,44 @@ async def finalize_jewelry(request: FinalizeRequest):
         
         # Convert remote image URLs to base64 to avoid CORS issues in AR
         print(f"Converting remote URLs to base64 for AR compatibility...")
-        images_for_ar = []
+        
+        async def convert_to_base64(img_dict, client):
+            """Convert a single image dict to base64 if it's a remote URL"""
+            if img_dict["url"].startswith("data:"):
+                # Already base64
+                return img_dict
+            else:
+                # Convert remote URL to base64
+                try:
+                    response = await client.get(img_dict["url"])
+                    if response.status_code == 200:
+                        img_data = response.content
+                        base64_data = base64.b64encode(img_data).decode('utf-8')
+                        converted = {
+                            "url": f"data:image/jpeg;base64,{base64_data}",
+                            "angle": img_dict["angle"]
+                        }
+                        print(f"Converted {img_dict['angle']} to base64 ({len(base64_data)} chars)")
+                        return converted
+                    else:
+                        print(f"Failed to fetch {img_dict['angle']}: HTTP {response.status_code}")
+                        return img_dict
+                except Exception as e:
+                    print(f"Failed to convert {img_dict['angle']} to base64: {e}")
+                    return img_dict
+        
         async with httpx.AsyncClient(timeout=30.0) as client:
-            for img in session["images"]:
-                if img["url"].startswith("data:"):
-                    # Already base64
-                    images_for_ar.append(img)
-                else:
-                    # Convert remote URL to base64
-                    try:
-                        response = await client.get(img["url"])
-                        if response.status_code == 200:
-                            img_data = response.content
-                            base64_data = base64.b64encode(img_data).decode('utf-8')
-                            images_for_ar.append({
-                                "url": f"data:image/jpeg;base64,{base64_data}",
-                                "angle": img["angle"]
-                            })
-                            print(f"Converted {img['angle']} to base64 ({len(base64_data)} chars)")
-                        else:
-                            print(f"Failed to fetch {img['angle']}: HTTP {response.status_code}")
-                            images_for_ar.append(img)
-                    except Exception as e:
-                        print(f"Failed to convert {img['angle']} to base64: {e}")
-                        images_for_ar.append(img)
+            # Convert both original images AND sketches to base64
+            images_tasks = [convert_to_base64(img, client) for img in session["images"]]
+            sketches_tasks = [convert_to_base64(sketch, client) for sketch in sketches]
+            
+            images_for_ar = await asyncio.gather(*images_tasks)
+            sketches_for_ar = await asyncio.gather(*sketches_tasks)
         
         response_data = {
             "session_id": request.session_id,
             "original_images": images_for_ar,  # Use base64 versions for AR
-            "sketches": sketches,
+            "sketches": sketches_for_ar,  # Use base64 versions for AR
             "model_3d": model_url,
             "prompt": session.get("original_prompt", "")
         }
