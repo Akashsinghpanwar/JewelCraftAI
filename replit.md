@@ -4,21 +4,38 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
-- **November 24, 2025**: Major architectural shift to AR Virtual Try-On
-  - **REMOVED**: 3D model viewer (Hitem3D API integration)
-  - **ADDED**: Real-time AR virtual try-on using MediaPipe face and hand tracking
-  - MediaPipe FaceMesh for earrings and necklaces (tracks earlobe and neck landmarks)
-  - MediaPipe Hands for rings and bracelets (tracks fingers and wrist)
-  - Real-time camera overlay with Canvas rendering (<20ms latency target)
-  - Automatic jewelry type detection from user prompt (earring/necklace/ring/bracelet)
-  - Live tracking indicator and user instructions
-  - Auto-scaling jewelry based on face/hand size and distance
-  - Users can now try on jewelry in real-time using their device camera
-  - Multi-jewelry selection: users can switch between base view and detail views in AR
-  - Fixed MediaPipe script loading with Promise-based load/error handlers
-  - Fixed Next.js cross-origin configuration for Replit environment
-  - Fixed CORS image loading: conditionally apply crossOrigin only for remote URLs, not base64 data URLs
-  - Enhanced error messages for camera permission issues
+- **November 24, 2025**: Major UI overhaul and reliability improvements
+  - **UI/UX Redesign**: Complete visual refresh with modern gradient design
+    - Purple-pink-orange gradient background with animated glowing orbs
+    - Glass-morphism effects with backdrop blur and semi-transparent panels
+    - Smooth CSS animations (fadeIn, slideUp) for polished user experience
+    - Redesigned "Jewelry Designer AI" branding with multi-color gradient text
+    - Modern icon system for all panels (renders, sketches, AR)
+    - Enhanced form design with lightbulb icon and gradient buttons
+    - Loading states with bouncing dot animations
+    - "LIVE" badge with pulse animation on AR panel
+  - **Navigation Improvements**:
+    - Added "Back to Design" button on preview screen
+    - Added "Back to Gallery" button on finalized screen
+    - Improved "Create New Design" button with emoji and larger gradient
+  - **Image Loading Reliability**:
+    - Retry logic (3 attempts) with exponential backoff (1s, 2s, 3s)
+    - 10-second timeout per image load attempt
+    - Conditional crossOrigin setting (only for remote URLs, not data URLs)
+    - Better error messages for debugging
+  - **AR Virtual Try-On Features**:
+    - Real-time camera tracking using MediaPipe FaceMesh + Hands
+    - MediaPipe FaceMesh for earrings and necklaces (earlobe/neck landmarks)
+    - MediaPipe Hands for rings and bracelets (finger/wrist tracking)
+    - Automatic jewelry type detection from user prompt
+    - Live tracking indicator and user instructions
+    - Auto-scaling based on face/hand size and distance
+    - Multi-jewelry selection in AR mode
+  - **Technical Fixes**:
+    - Fixed MediaPipe script loading with Promise-based load/error handlers
+    - Fixed Next.js cross-origin configuration for Replit environment
+    - Fixed CORS image loading for both remote URLs and base64 data
+    - Enhanced error messages for camera permission issues
 - **October 30, 2025**: Fixed modification bug - now preserves design when changing materials
   - Modified jewelry endpoint to use image-to-image enhancement instead of text-to-image
   - Ensures necklace stays necklace when changing metal from silver to gold
