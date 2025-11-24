@@ -93,18 +93,37 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
               }
               
               await new Promise<void>((resolve, reject) => {
-                img.onload = () => resolve();
-                img.onerror = (e) => {
-                  console.error(`Image load failed (attempt ${i + 1}/${retries}):`, cleanUrl.substring(0, 100) + '...');
-                  reject(new Error("Image load failed"));
+                let timeoutId: NodeJS.Timeout;
+                let resolved = false;
+                
+                img.onload = () => {
+                  if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeoutId);
+                    resolve();
+                  }
                 };
+                
+                img.onerror = (e) => {
+                  if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeoutId);
+                    console.error(`Image load failed (attempt ${i + 1}/${retries}):`, cleanUrl.substring(0, 100) + '...');
+                    reject(new Error("Image load failed"));
+                  }
+                };
+                
                 img.src = cleanUrl;
                 
-                // Timeout after 10 seconds
-                setTimeout(() => {
-                  console.error(`Image load timeout (attempt ${i + 1}/${retries})`);
-                  reject(new Error("Image load timeout"));
-                }, 10000);
+                // Longer timeout for base64 images (30 seconds), shorter for remote URLs (10 seconds)
+                const timeout = cleanUrl.startsWith("data:") ? 30000 : 10000;
+                timeoutId = setTimeout(() => {
+                  if (!resolved) {
+                    resolved = true;
+                    console.error(`Image load timeout after ${timeout/1000}s (attempt ${i + 1}/${retries})`);
+                    reject(new Error("Image load timeout"));
+                  }
+                }, timeout);
               });
               
               return img;
