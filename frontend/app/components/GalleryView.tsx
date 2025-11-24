@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { decodeImageUrl } from "../utils/imageUtils";
 
 interface GalleryViewProps {
   images: any[];
@@ -60,7 +61,7 @@ export default function GalleryView({ images }: GalleryViewProps) {
           <div className="w-full aspect-[4/3] sm:aspect-[16/10] lg:h-[500px] lg:aspect-auto flex items-center justify-center p-4 sm:p-6 lg:p-10 bg-white/80">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
-                src={currentImage.url}
+                src={decodeImageUrl(currentImage.url)}
                 alt={currentImage.angle}
                 className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-2xl"
                 style={{
@@ -157,7 +158,7 @@ export default function GalleryView({ images }: GalleryViewProps) {
               <div className="relative">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white p-2 flex items-center justify-center">
                   <img
-                    src={img.url}
+                    src={decodeImageUrl(img.url)}
                     alt={img.angle}
                     className="max-w-full max-h-full object-contain"
                   />

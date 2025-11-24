@@ -81,26 +81,38 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
 
         // Load jewelry image with retry logic
         const loadImage = async (url: string, retries = 3): Promise<HTMLImageElement> => {
+          // Decode HTML entities in URL (fixes &amp; to &)
+          const cleanUrl = url.replace(/&amp;/g, '&');
+          
           for (let i = 0; i < retries; i++) {
             try {
               const img = new Image();
               // Only set crossOrigin for remote URLs, not for data URLs
-              if (!url.startsWith("data:")) {
+              if (!cleanUrl.startsWith("data:")) {
                 img.crossOrigin = "anonymous";
               }
               
               await new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
-                img.onerror = () => reject(new Error("Image load failed"));
-                img.src = url;
+                img.onerror = (e) => {
+                  console.error(`Image load failed (attempt ${i + 1}/${retries}):`, cleanUrl.substring(0, 100) + '...');
+                  reject(new Error("Image load failed"));
+                };
+                img.src = cleanUrl;
                 
                 // Timeout after 10 seconds
-                setTimeout(() => reject(new Error("Image load timeout")), 10000);
+                setTimeout(() => {
+                  console.error(`Image load timeout (attempt ${i + 1}/${retries})`);
+                  reject(new Error("Image load timeout"));
+                }, 10000);
               });
               
               return img;
             } catch (err) {
-              if (i === retries - 1) throw err;
+              if (i === retries - 1) {
+                console.error('All image load attempts failed for:', cleanUrl.substring(0, 100) + '...');
+                throw err;
+              }
               // Wait before retry (exponential backoff)
               await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
             }
@@ -160,7 +172,20 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
         setIsTracking(true);
       } catch (err) {
         console.error("AR setup error:", err);
-        const errorMessage = err instanceof Error ? err.message : "Failed to initialize AR. Please check your camera permissions.";
+        let errorMessage = "Failed to initialize AR.";
+        
+        if (err instanceof Error) {
+          if (err.message.includes("Camera")) {
+            errorMessage = err.message;
+          } else if (err.message.includes("Image load")) {
+            errorMessage = "Could not load jewelry image. The image may be temporarily unavailable. Please try selecting a different view.";
+          } else if (err.message.includes("MediaPipe")) {
+            errorMessage = "Failed to load AR tracking library. Please refresh the page and try again.";
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        
         setError(errorMessage);
         setIsLoading(false);
       }

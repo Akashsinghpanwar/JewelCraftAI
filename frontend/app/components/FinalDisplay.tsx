@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import ARTryOn from "./ARTryOn";
+import { decodeImageUrl } from "../utils/imageUtils";
 
 interface FinalDisplayProps {
   data: any;
@@ -51,7 +52,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
           </div>
           <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white flex items-center justify-center">
             <img
-              src={data.original_images[currentImageIndex]?.url}
+              src={decodeImageUrl(data.original_images[currentImageIndex]?.url)}
               alt={data.original_images[currentImageIndex]?.angle}
               className="w-full h-80 object-contain"
             />
@@ -68,7 +69,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
                 }`}
               >
                 <img
-                  src={img.url}
+                  src={decodeImageUrl(img.url)}
                   alt={img.angle}
                   className="w-full h-full object-cover"
                 />
@@ -93,7 +94,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
           </div>
           <div className="mb-4 rounded-2xl overflow-hidden border-2 border-amber-300 bg-white flex items-center justify-center">
             <img
-              src={data.sketches?.[currentSketchIndex]?.url || data.sketch}
+              src={decodeImageUrl(data.sketches?.[currentSketchIndex]?.url || data.sketch)}
               alt={data.sketches?.[currentSketchIndex]?.angle || "Sketch version"}
               className="w-full h-80 object-contain"
             />
@@ -112,7 +113,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
                     }`}
                   >
                     <img
-                      src={sketch.url}
+                      src={decodeImageUrl(sketch.url)}
                       alt={sketch.angle}
                       className="w-full h-full object-contain"
                     />
@@ -163,7 +164,7 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
                   }`}
                 >
                   <img
-                    src={img.url}
+                    src={decodeImageUrl(img.url)}
                     alt={img.angle}
                     className="w-full h-full object-cover"
                   />
