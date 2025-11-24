@@ -5,6 +5,8 @@ import os
 from typing import List, Dict
 import uuid
 import asyncio
+import base64
+import httpx
 from utils.image_generator import JewelryImageGenerator
 from utils.image_processor import ImageProcessor
 

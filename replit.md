@@ -34,7 +34,12 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - **Technical Fixes**:
     - Fixed MediaPipe script loading with Promise-based load/error handlers
     - Fixed Next.js cross-origin configuration for Replit environment
-    - Fixed CORS image loading for both remote URLs and base64 data
+    - **Fixed AR CORS Issue**: Backend now converts all ARK CDN URLs to base64 data URLs before sending to frontend
+      - Eliminates cross-origin canvas access errors in AR Virtual Try-On
+      - ARK CDN has strict CORS policies that prevent canvas drawing
+      - Backend fetches remote images and encodes as base64 (no client-side CORS restrictions)
+      - Added missing `httpx` and `base64` imports to backend
+    - Created reusable image utility (decodeImageUrl) for HTML entity decoding across all components
     - Enhanced error messages for camera permission issues
 - **October 30, 2025**: Fixed modification bug - now preserves design when changing materials
   - Modified jewelry endpoint to use image-to-image enhancement instead of text-to-image
