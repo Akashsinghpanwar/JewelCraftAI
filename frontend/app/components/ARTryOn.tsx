@@ -81,11 +81,17 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
 
         // Load jewelry image
         const img = new Image();
-        img.crossOrigin = "anonymous";
+        // Only set crossOrigin for remote URLs, not for data URLs
+        if (!jewelryImage.startsWith("data:")) {
+          img.crossOrigin = "anonymous";
+        }
         img.src = jewelryImage;
         await new Promise((resolve, reject) => {
           img.onload = resolve;
-          img.onerror = () => reject(new Error("Failed to load jewelry image"));
+          img.onerror = (e) => {
+            console.error("Image load error:", e);
+            reject(new Error(`Failed to load jewelry image from: ${jewelryImage.substring(0, 100)}...`));
+          };
         });
         jewelryImgRef.current = img;
 
