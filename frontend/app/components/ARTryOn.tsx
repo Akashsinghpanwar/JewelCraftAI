@@ -79,20 +79,36 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
       try {
         await loadMediaPipe();
 
-        // Load jewelry image
-        const img = new Image();
-        // Only set crossOrigin for remote URLs, not for data URLs
-        if (!jewelryImage.startsWith("data:")) {
-          img.crossOrigin = "anonymous";
-        }
-        img.src = jewelryImage;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = (e) => {
-            console.error("Image load error:", e);
-            reject(new Error(`Failed to load jewelry image from: ${jewelryImage.substring(0, 100)}...`));
-          };
-        });
+        // Load jewelry image with retry logic
+        const loadImage = async (url: string, retries = 3): Promise<HTMLImageElement> => {
+          for (let i = 0; i < retries; i++) {
+            try {
+              const img = new Image();
+              // Only set crossOrigin for remote URLs, not for data URLs
+              if (!url.startsWith("data:")) {
+                img.crossOrigin = "anonymous";
+              }
+              
+              await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error("Image load failed"));
+                img.src = url;
+                
+                // Timeout after 10 seconds
+                setTimeout(() => reject(new Error("Image load timeout")), 10000);
+              });
+              
+              return img;
+            } catch (err) {
+              if (i === retries - 1) throw err;
+              // Wait before retry (exponential backoff)
+              await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            }
+          }
+          throw new Error("Failed to load image after retries");
+        };
+
+        const img = await loadImage(jewelryImage);
         jewelryImgRef.current = img;
 
         // Setup camera
