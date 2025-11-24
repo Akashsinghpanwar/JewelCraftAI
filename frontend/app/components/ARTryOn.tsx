@@ -85,23 +85,38 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
         img.src = jewelryImage;
         await new Promise((resolve, reject) => {
           img.onload = resolve;
-          img.onerror = reject;
+          img.onerror = () => reject(new Error("Failed to load jewelry image"));
         });
         jewelryImgRef.current = img;
 
         // Setup camera
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        if (!video || !canvas) return;
+        if (!video || !canvas) {
+          throw new Error("Video or canvas element not found");
+        }
 
         // Request camera access
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: "user",
-          },
-        });
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: "user",
+            },
+          });
+        } catch (cameraErr: any) {
+          if (cameraErr.name === "NotAllowedError" || cameraErr.name === "PermissionDeniedError") {
+            throw new Error("Camera access denied. Please allow camera permissions in your browser settings.");
+          } else if (cameraErr.name === "NotFoundError") {
+            throw new Error("No camera found. Please connect a camera and try again.");
+          } else if (cameraErr.name === "NotReadableError") {
+            throw new Error("Camera is already in use by another application.");
+          } else {
+            throw new Error(`Camera access failed: ${cameraErr.message || "Unknown error"}`);
+          }
+        }
 
         video.srcObject = stream;
         await video.play();
@@ -123,7 +138,8 @@ export default function ARTryOn({ jewelryImage, jewelryType }: ARTryOnProps) {
         setIsTracking(true);
       } catch (err) {
         console.error("AR setup error:", err);
-        setError(err instanceof Error ? err.message : "Failed to initialize AR");
+        const errorMessage = err instanceof Error ? err.message : "Failed to initialize AR. Please check your camera permissions.";
+        setError(errorMessage);
         setIsLoading(false);
       }
     };

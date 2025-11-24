@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: replitDomain ? [replitDomain] : [],
+  allowedDevOrigins: [
+    ...(replitDomain ? [replitDomain, `https://${replitDomain}`] : []),
+    "127.0.0.1",
+    "localhost",
+  ],
   experimental: {
     proxyTimeout: 300000, // 5 minutes timeout for API proxy
   },
