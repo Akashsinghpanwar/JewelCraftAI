@@ -4,15 +4,27 @@
 An AI-powered jewelry design webapp that generates multi-angle views of jewelry from text prompts, allows customization, and creates sketch and 3D model representations.
 
 ## Recent Changes
-- **October 30, 2025**: Gallery UI enhancements and Hitem3D status update
-  - Enhanced gallery view with amber gradient navigation buttons and white borders
-  - Redesigned thumbnail gallery with rings, hover states, checkmarks, and "All Views" divider
-  - Added "Same Jewelry" info badge to clarify all views come from one design
-  - Improved responsive layouts across mobile/tablet/desktop breakpoints
-  - Fixed image centering with responsive aspect ratios and flex containers
-  - Hitem3D 3D model integration currently disabled (all API endpoints return 404)
-  - 3D feature requires official API documentation or alternative service
-  - Gallery now clearly labels "base view" vs "detail view" for user clarity
+- **November 24, 2025**: Major architectural shift to AR Virtual Try-On
+  - **REMOVED**: 3D model viewer (Hitem3D API integration)
+  - **ADDED**: Real-time AR virtual try-on using MediaPipe face and hand tracking
+  - MediaPipe FaceMesh for earrings and necklaces (tracks earlobe and neck landmarks)
+  - MediaPipe Hands for rings and bracelets (tracks fingers and wrist)
+  - Real-time camera overlay with Canvas rendering (<20ms latency target)
+  - Automatic jewelry type detection from user prompt (earring/necklace/ring/bracelet)
+  - Live tracking indicator and user instructions
+  - Auto-scaling jewelry based on face/hand size and distance
+  - Users can now try on jewelry in real-time using their device camera
+  - Multi-jewelry selection: users can switch between base view and detail views in AR
+- **October 30, 2025**: Fixed modification bug - now preserves design when changing materials
+  - Modified jewelry endpoint to use image-to-image enhancement instead of text-to-image
+  - Ensures necklace stays necklace when changing metal from silver to gold
+  - Only modifies materials/colors, preserves exact geometry and structure
+- **October 30, 2025**: Gallery UI enhancements
+  - Enhanced gallery view with amber gradient navigation buttons
+  - Redesigned thumbnail gallery with rings, hover states, checkmarks
+  - Added "Same Jewelry" info badge to clarify all views from one design
+  - Improved responsive layouts across mobile/tablet/desktop
+  - Fixed image centering with responsive aspect ratios
 - **October 29, 2025**: Implemented crop-and-enhance workflow for 100% design consistency
   - Generate ONE ultra-high-resolution base image (2K) for perfect consistency
   - Crop specific regions (pendant, chain, clasp, etc.) from the base image
@@ -87,13 +99,15 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
 - Location: `/frontend`
 - Framework: Next.js 14+ with React 18+
 - Styling: TailwindCSS with elegant white/gold gradient theme
-- 3D Viewer: Google model-viewer web component for .glb 3D models
+- AR Try-On: MediaPipe FaceMesh + Hands for real-time virtual try-on
 - Features:
   - Multi-angle gallery with camera perspective labels and perfect image centering
-  - Modification controls (metal, gemstone, band shape)
-  - 3-panel final layout: renders carousel, technical sketches gallery, interactive 3D viewer
+  - Modification controls (metal, gemstone, band shape) that preserve original design
+  - 3-panel final layout: renders carousel, technical sketches gallery, AR virtual try-on
   - 6 realistic pencil sketch views with thumbnail navigation
-  - Interactive .glb 3D model display with rotation, zoom, and auto-rotate
+  - Real-time camera tracking with face/hand landmarks
+  - Live jewelry overlay with auto-scaling and rotation
+  - Jewelry type detection (earring/necklace/ring/bracelet)
   - Smooth transitions and rounded card design
 
 ### Backend (FastAPI)

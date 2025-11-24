@@ -215,7 +215,8 @@ async def finalize_jewelry(request: FinalizeRequest):
             "session_id": request.session_id,
             "original_images": session["images"],
             "sketches": sketches,
-            "model_3d": model_url
+            "model_3d": model_url,
+            "prompt": session.get("original_prompt", "")
         }
         
         print(f"Response data prepared, returning to client...")

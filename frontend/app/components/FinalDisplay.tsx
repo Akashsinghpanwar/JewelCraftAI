@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Viewer3D from "./Viewer3D";
+import { useState, useMemo } from "react";
+import ARTryOn from "./ARTryOn";
 
 interface FinalDisplayProps {
   data: any;
@@ -10,6 +10,20 @@ interface FinalDisplayProps {
 export default function FinalDisplay({ data }: FinalDisplayProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentSketchIndex, setCurrentSketchIndex] = useState(0);
+  const [selectedJewelryIndex, setSelectedJewelryIndex] = useState(0);
+
+  // Detect jewelry type from the prompt or image angles
+  const jewelryType = useMemo(() => {
+    const prompt = data.prompt?.toLowerCase() || "";
+    
+    if (prompt.includes("earring")) return "earrings";
+    if (prompt.includes("necklace") || prompt.includes("pendant")) return "necklace";
+    if (prompt.includes("ring")) return "ring";
+    if (prompt.includes("bracelet") || prompt.includes("bangle")) return "bracelet";
+    
+    // Default to necklace if unclear
+    return "necklace";
+  }, [data.prompt]);
 
   return (
     <div className="space-y-8">
@@ -96,15 +110,40 @@ export default function FinalDisplay({ data }: FinalDisplayProps) {
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl p-6 border border-amber-200">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            3D Interactive Model
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span>AR Virtual Try-On</span>
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+              LIVE
+            </span>
           </h3>
           <div className="rounded-2xl overflow-hidden border-2 border-amber-300 h-80">
-            <Viewer3D modelUrl={data.model_3d} />
+            <ARTryOn
+              jewelryImage={data.original_images[selectedJewelryIndex]?.url}
+              jewelryType={jewelryType as any}
+            />
           </div>
-          <p className="text-sm text-gray-600 mt-3 text-center">
-            Click and drag to rotate
-          </p>
+          <div className="mt-4">
+            <p className="text-xs text-gray-600 mb-2 text-center font-semibold">Select View to Try On:</p>
+            <div className="flex gap-2 justify-center overflow-x-auto pb-2">
+              {data.original_images.map((img: any, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedJewelryIndex(idx)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedJewelryIndex === idx
+                      ? "border-amber-500 scale-110 shadow-lg"
+                      : "border-gray-300 hover:border-amber-300 opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={img.url}
+                    alt={img.angle}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
