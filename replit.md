@@ -15,6 +15,10 @@ An AI-powered jewelry design webapp that generates multi-angle views of jewelry 
   - Auto-scaling jewelry based on face/hand size and distance
   - Users can now try on jewelry in real-time using their device camera
   - Multi-jewelry selection: users can switch between base view and detail views in AR
+  - Fixed MediaPipe script loading with Promise-based load/error handlers
+  - Fixed Next.js cross-origin configuration for Replit environment
+  - Fixed CORS image loading: conditionally apply crossOrigin only for remote URLs, not base64 data URLs
+  - Enhanced error messages for camera permission issues
 - **October 30, 2025**: Fixed modification bug - now preserves design when changing materials
   - Modified jewelry endpoint to use image-to-image enhancement instead of text-to-image
   - Ensures necklace stays necklace when changing metal from silver to gold
