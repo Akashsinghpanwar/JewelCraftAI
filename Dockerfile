@@ -6,6 +6,7 @@ COPY frontend/package*.json ./
 COPY frontend/tsconfig.json frontend/next.config.ts frontend/eslint.config.mjs frontend/postcss.config.mjs ./
 COPY frontend/app ./app
 COPY frontend/public ./public
+COPY frontend/types ./types
 
 RUN npm ci
 RUN npm run build
