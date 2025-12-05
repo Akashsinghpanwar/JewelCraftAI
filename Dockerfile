@@ -1,5 +1,5 @@
 # ---------- Frontend build ----------
-FROM node:20-bullseye AS frontend-builder
+FROM node:20-bookworm AS frontend-builder
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
@@ -12,12 +12,12 @@ RUN npm run build
 
 
 # ---------- Runtime ----------
-FROM node:20-bullseye AS runtime
+FROM node:20-bookworm AS runtime
 WORKDIR /app
 
-# System deps for Python + OpenCV/rembg
+# System deps for Python + OpenCV/rembg (Python 3.11 from bookworm)
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip libgl1 libglib2.0-0 && \
+    apt-get install -y python3 python3-pip python3-venv python3-dev libgl1 libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
 # Backend deps

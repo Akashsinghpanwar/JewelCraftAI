@@ -33,6 +33,7 @@ export default function SpaceScene({ autoStopMs = 3000 }: SpaceSceneProps) {
     let solarSystem: SolarSystem;
 
     function resize() {
+      if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
       initWorld();
