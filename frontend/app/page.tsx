@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import GenerateForm from "./components/GenerateForm";
+import CreationWizard from "./components/CreationWizard";
 import GalleryView from "./components/GalleryView";
 import ModificationControls from "./components/ModificationControls";
 import FinalDisplay from "./components/FinalDisplay";
+import SpaceScene from "./components/SpaceScene";
 
 export default function Home() {
   const [step, setStep] = useState<"generate" | "preview" | "finalize">("generate");
@@ -12,30 +13,40 @@ export default function Home() {
   const [images, setImages] = useState<any[]>([]);
   const [finalData, setFinalData] = useState<any>(null);
 
+  const handleModification = (imgs: any[]) => {
+    setImages(imgs);
+  };
+
+  const handleFinalize = (data: any) => {
+    setFinalData(data);
+    setStep("finalize");
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative overflow-hidden">
-      {/* Animated background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-amber-200/30 to-orange-300/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-pink-200/30 to-purple-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <main className="bg-black text-white selection:bg-amber-500/30 font-sans min-h-screen overflow-x-hidden w-full">
+      {/* Global Background Noise Texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-50 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <header className="text-center mb-12 animate-fadeIn">
-          <div className="inline-block mb-4 px-6 py-2 bg-white/80 backdrop-blur-sm rounded-full border-2 border-amber-300/50 shadow-lg">
-            <span className="text-amber-600 font-semibold text-sm tracking-wider">✨ AI-POWERED DESIGN ✨</span>
+      {step === "generate" && (
+        <section className="h-screen w-full relative flex flex-col items-center justify-center overflow-hidden">
+          {/* Cosmic background */}
+          <div className="absolute inset-0 z-0">
+            <SpaceScene />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/85 pointer-events-none" />
           </div>
-          <h1 className="text-7xl font-extrabold bg-gradient-to-r from-amber-600 via-orange-500 to-pink-500 bg-clip-text text-transparent mb-4 drop-shadow-lg">
-            Jewelry Designer AI
-          </h1>
-          <p className="text-gray-700 text-xl max-w-2xl mx-auto font-light">
-            Transform your ideas into stunning 3D jewelry designs with our advanced AI technology
-          </p>
-        </header>
 
-        {step === "generate" && (
-          <div className="animate-slideUp">
-            <GenerateForm
+          <div className="relative z-10 w-full px-6 flex flex-col items-center justify-center h-full">
+            <header className="text-center mb-12 animate-fadeIn flex flex-col items-center">
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-sm tracking-[0.5em] text-amber-300/80 uppercase">Cosmic Atelier</p>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-[0.2em] text-white drop-shadow-[0_0_25px_rgba(0,220,255,0.25)]">
+                  BlinK N blinG
+                </h1>
+                <p className="text-lg text-white/70 max-w-2xl">Launch exquisite designs from a stellar canvas—generate, refine, and finalize your signature piece.</p>
+              </div>
+            </header>
+
+            <CreationWizard
               onGenerate={(id, imgs) => {
                 setSessionId(id);
                 setImages(imgs);
@@ -43,100 +54,96 @@ export default function Home() {
               }}
             />
           </div>
-        )}
+        </section>
+      )}
 
-        {step === "preview" && (
-          <div className="space-y-8 animate-slideUp">
-            {/* Back button */}
-            <button
-              onClick={() => setStep("generate")}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white transition-all shadow-md hover:shadow-lg"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Design
-            </button>
-            
-            <GalleryView images={images} />
-            <ModificationControls
-              sessionId={sessionId}
-              onModify={(imgs) => setImages(imgs)}
-              onFinalize={(data) => {
-                setFinalData(data);
-                setStep("finalize");
-              }}
-            />
-          </div>
-        )}
-
-        {step === "finalize" && finalData && (
-          <div className="animate-slideUp">
-            {/* Back button */}
-            <button
-              onClick={() => setStep("preview")}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm text-gray-700 rounded-full hover:bg-white transition-all shadow-md hover:shadow-lg mb-6"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Gallery
-            </button>
-
-            <FinalDisplay data={finalData} />
-            
-            <div className="text-center mt-12">
-              <button
-                onClick={() => {
-                  setStep("generate");
-                  setSessionId("");
-                  setImages([]);
-                  setFinalData(null);
+      {step === "preview" && (
+        <section className="min-h-screen w-full bg-zinc-950 relative py-20 animate-fadeIn overflow-hidden">
+          {/* Starfall Background */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute top-0 w-[2px] h-[150px] bg-gradient-to-b from-transparent via-amber-200 to-transparent opacity-0 animate-starfall"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${3 + Math.random() * 4}s`,
                 }}
-                className="px-10 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all shadow-xl"
+              />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-900/90 to-black"></div>
+          </div>
+
+          <div className="relative z-10 w-full h-full px-6 md:px-12 flex flex-col">
+            <header className="flex items-center justify-between mb-12">
+              <h2 className="font-serif text-4xl md:text-5xl text-white">Curated Selection</h2>
+              <button
+                onClick={() => setStep("generate")}
+                className="group flex items-center gap-3 text-zinc-400 hover:text-white transition-colors"
               >
-                🎨 Create New Design
+                <span className="font-sans text-sm tracking-widest uppercase">Back to Studio</span>
+                <svg className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
               </button>
+            </header>
+
+            <div className="flex flex-col md:flex-row gap-12 items-start">
+              {/* Left: Gallery */}
+              <div className="w-full md:w-2/3 animate-slideRight">
+                <GalleryView images={images} />
+              </div>
+
+              {/* Right: Controls */}
+              <div className="w-full md:w-1/3 animate-slideLeft sticky top-24">
+                <ModificationControls
+                  sessionId={sessionId}
+                  onModify={handleModification}
+                  onFinalize={handleFinalize}
+                />
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
+      {step === "finalize" && finalData && (
+        <section className="h-screen w-full bg-black overflow-hidden animate-fadeIn">
+          <FinalDisplay data={finalData} />
 
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
+          {/* Floating Back Button */}
+          <div className="fixed top-8 left-8 z-50">
+            <button
+              onClick={() => setStep("preview")}
+              className="group flex items-center gap-3 text-white/50 hover:text-white transition-colors bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:border-white/30"
+            >
+              <svg className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-sans text-xs tracking-widest uppercase">Back</span>
+            </button>
+          </div>
 
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out;
-        }
-
-        .animate-slideUp {
-          animation: slideUp 0.6s ease-out;
-        }
-
-        .delay-1000 {
-          animation-delay: 1s;
-        }
-      `}</style>
+          {/* Floating New Design Button */}
+          <div className="fixed top-8 right-8 z-50">
+            <button
+              onClick={() => {
+                setStep("generate");
+                setSessionId("");
+                setImages([]);
+                setFinalData(null);
+              }}
+              className="group flex items-center gap-3 text-amber-400 hover:text-amber-300 transition-colors bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-amber-500/20 hover:border-amber-500/50"
+            >
+              <span className="font-sans text-xs tracking-widest uppercase">New Design</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

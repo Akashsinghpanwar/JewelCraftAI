@@ -7,8 +7,14 @@ import uuid
 import asyncio
 import base64
 import httpx
+from dotenv import load_dotenv
+from rembg import remove
 from utils.image_generator import JewelryImageGenerator
 from utils.image_processor import ImageProcessor
+
+# Load environment variables from .env file
+load_dotenv()
+
 
 app = FastAPI(title="AI Jewelry Generator")
 
@@ -30,9 +36,10 @@ class GenerateRequest(BaseModel):
 
 class ModifyRequest(BaseModel):
     session_id: str
-    metal: str
-    gemstone: str
-    band_shape: str
+    metal: str = "gold"
+    gemstone: str = "ruby"
+    band_shape: str = "thin"
+    custom_instruction: str = None
 
 class FinalizeRequest(BaseModel):
     session_id: str
@@ -125,7 +132,10 @@ async def modify_jewelry(request: ModifyRequest):
         
         # Step 1: Use image-to-image to MODIFY the existing jewelry (NOT create new one)
         # This preserves the exact design, shape, and structure - only changes materials
-        modification_prompt = f"Transform this jewelry to {request.metal} metal with {request.gemstone} gemstone and {request.band_shape} band. CRITICAL: Keep the EXACT SAME design, shape, structure, proportions, and geometry as the input image. DO NOT change the jewelry type (necklace stays necklace, ring stays ring, etc). DO NOT redesign or create different jewelry. ONLY update the metal finish to {request.metal} color/texture and gemstone to {request.gemstone} color. The band should be {request.band_shape}. Maintain the same camera angle, lighting, and white background. This is a material swap only - preserve all design elements perfectly."
+        if request.custom_instruction:
+            modification_prompt = f"Modify this jewelry according to these instructions: {request.custom_instruction}. CRITICAL: Keep the EXACT SAME design, shape, structure, proportions, and geometry as the input image. DO NOT change the jewelry type. DO NOT redesign. Maintain the same camera angle, lighting, and white background. This is a material/style swap only - preserve all design elements perfectly."
+        else:
+            modification_prompt = f"Transform this jewelry to {request.metal} metal with {request.gemstone} gemstone and {request.band_shape} band. CRITICAL: Keep the EXACT SAME design, shape, structure, proportions, and geometry as the input image. DO NOT change the jewelry type (necklace stays necklace, ring stays ring, etc). DO NOT redesign or create different jewelry. ONLY update the metal finish to {request.metal} color/texture and gemstone to {request.gemstone} color. The band should be {request.band_shape}. Maintain the same camera angle, lighting, and white background. This is a material swap only - preserve all design elements perfectly."
         
         print(f"Modifying materials on existing jewelry (image-to-image)...")
         base_image_url = await image_generator.enhance_image(original_base_image, modification_prompt)
@@ -183,87 +193,72 @@ async def finalize_jewelry(request: FinalizeRequest):
         session = sessions[request.session_id]
         
         # Convert the finalized jewelry images to pencil sketches using image-to-image
-        # This ensures sketches look identical to the final jewelry design
         print(f"Converting {len(session['images'])} finalized jewelry images to pencil sketches...")
         sketches = await image_processor.convert_images_to_sketches(session["images"])
         print(f"Sketch conversion complete")
         
-        print(f"Generating 3D model using Hitem3D API...")
-        try:
-            # Get the base view image URL (first image in the session)
-            base_image_url = session["images"][0]["url"] if session["images"] else None
-            
-            if not base_image_url:
-                raise Exception("No base image found for 3D conversion")
-            
-            # Convert to 3D using Hitem3D API (increased timeout for API processing)
-            model_url = await asyncio.wait_for(
-                image_processor.create_3d_model(base_image_url),
-                timeout=350.0  # 5-6 minutes for Hitem3D processing
-            )
-            print(f"3D model generated: {model_url[:100]}...")
-        except asyncio.TimeoutError:
-            print(f"3D model generation timed out after 350 seconds")
-            model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Timeout"
-        except Exception as e:
-            print(f"Error generating 3D model: {e}")
-            import traceback
-            traceback.print_exc()
-            model_url = "https://via.placeholder.com/1024x1024/808080/FFFFFF?text=3D+Model+Error"
-        
-        print(f"Preparing response with {len(sketches)} sketches and 3D model")
-        
-        # Convert remote image URLs to base64 to avoid CORS issues in AR
-        print(f"Converting remote URLs to base64 for AR compatibility...")
-        
-        async def convert_to_base64(img_dict, client):
+        async def convert_to_base64(img_dict, client, apply_rembg=True):
             """Convert a single image dict to base64 if it's a remote URL"""
             if img_dict["url"].startswith("data:"):
-                # Already base64
                 return img_dict
             else:
-                # Convert remote URL to base64
                 try:
-                    response = await client.get(img_dict["url"])
+                    response = await client.get(img_dict["url"], timeout=30.0)
                     if response.status_code == 200:
-                        img_data = response.content
+                        original_data = response.content
+                        img_data = original_data
+                        
+                        # Remove background for AR transparency (only for non-sketches)
+                        if apply_rembg:
+                            try:
+                                print(f"Removing background for {img_dict['angle']}...")
+                                # Enable alpha matting for better edge detection
+                                no_bg_data = await asyncio.to_thread(
+                                    remove, 
+                                    original_data, 
+                                    alpha_matting=True,
+                                    alpha_matting_foreground_threshold=240,
+                                    alpha_matting_background_threshold=10,
+                                    alpha_matting_erode_size=10
+                                )
+                                
+                                if len(no_bg_data) > 100:
+                                    img_data = no_bg_data
+                                    print(f"Background removed for {img_dict['angle']}")
+                                else:
+                                    print(f"Background removal failed (empty), keeping original")
+                            except Exception as e:
+                                print(f"Background removal error: {e}")
+                        
                         base64_data = base64.b64encode(img_data).decode('utf-8')
-                        converted = {
-                            "url": f"data:image/jpeg;base64,{base64_data}",
+                        return {
+                            "url": f"data:image/png;base64,{base64_data}",
                             "angle": img_dict["angle"]
                         }
-                        print(f"Converted {img_dict['angle']} to base64 ({len(base64_data)} chars)")
-                        return converted
                     else:
-                        print(f"Failed to fetch {img_dict['angle']}: HTTP {response.status_code}")
                         return img_dict
                 except Exception as e:
-                    print(f"Failed to convert {img_dict['angle']} to base64: {e}")
+                    print(f"Failed to convert {img_dict['angle']}: {e}")
                     return img_dict
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Convert both original images AND sketches to base64
-            images_tasks = [convert_to_base64(img, client) for img in session["images"]]
-            sketches_tasks = [convert_to_base64(sketch, client) for sketch in sketches]
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            images_tasks = [convert_to_base64(img, client, apply_rembg=True) for img in session["images"]]
+            sketches_tasks = [convert_to_base64(sketch, client, apply_rembg=False) for sketch in sketches]
             
             images_for_ar = await asyncio.gather(*images_tasks)
             sketches_for_ar = await asyncio.gather(*sketches_tasks)
         
-        response_data = {
+        return {
             "session_id": request.session_id,
-            "original_images": images_for_ar,  # Use base64 versions for AR
-            "sketches": sketches_for_ar,  # Use base64 versions for AR
-            "model_3d": model_url,
+            "original_images": images_for_ar,
+            "sketches": sketches_for_ar,
             "prompt": session.get("original_prompt", "")
         }
-        
-        print(f"Response data prepared, returning to client...")
-        return response_data
     except Exception as e:
         import traceback
-        print(f"ERROR in /finalize endpoint: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
