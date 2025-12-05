@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { apiUrl } from "../utils/api";
 
 interface CreationWizardProps {
     onGenerate: (sessionId: string, images: any[]) => void;
@@ -21,7 +22,7 @@ export default function CreationWizard({ onGenerate }: CreationWizardProps) {
 
         setIsGenerating(true);
         try {
-            const response = await fetch("http://localhost:8000/generate", {
+            const response = await fetch(apiUrl("/generate"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt }),

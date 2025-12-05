@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 interface ModificationControlsProps {
   sessionId: string;
@@ -23,7 +24,7 @@ export default function ModificationControls({
   const handleModify = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/modify", {
+      const response = await axios.post(apiUrl("/modify"), {
         session_id: sessionId,
         metal,
         gemstone,
@@ -46,7 +47,7 @@ export default function ModificationControls({
   const handleFinalize = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/finalize", {
+      const response = await axios.post(apiUrl("/finalize"), {
         session_id: sessionId,
       }, {
         timeout: 180000,
