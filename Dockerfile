@@ -20,10 +20,15 @@ RUN apt-get update && \
     apt-get install -y python3 python3-pip python3-venv python3-dev libgl1 libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
+# Isolated virtualenv for backend Python deps to avoid Debian's externally-managed protections
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN python3 -m venv "$VIRTUAL_ENV" && \
+    python -m pip install --upgrade pip
+
 # Backend deps
 COPY backend/requirements.txt /app/backend/requirements.txt
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r /app/backend/requirements.txt rembg onnxruntime python-dotenv
+RUN python -m pip install --no-cache-dir -r /app/backend/requirements.txt rembg onnxruntime python-dotenv
 
 # App source
 COPY backend /app/backend
