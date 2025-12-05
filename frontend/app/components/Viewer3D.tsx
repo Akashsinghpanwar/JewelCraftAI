@@ -6,15 +6,6 @@ interface Viewer3DProps {
   modelUrl: string;
 }
 
-// Extend JSX to include model-viewer element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': any;
-    }
-  }
-}
-
 export default function Viewer3D({ modelUrl }: Viewer3DProps) {
   const viewerRef = useRef<HTMLDivElement>(null);
   
